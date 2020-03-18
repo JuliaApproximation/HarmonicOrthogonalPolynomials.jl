@@ -1,5 +1,5 @@
 module SphericalHarmonics
-using FastTransforms, LinearAlgebra, OrthogonalPolynomialsQuasi, ContinuumArrays, DomainSets, BlockArrays, InfiniteArrays, StaticArrays, QuasiArrays, Base
+using FastTransforms, LinearAlgebra, OrthogonalPolynomialsQuasi, ContinuumArrays, DomainSets, BlockArrays, InfiniteArrays, StaticArrays, QuasiArrays, Base, SpecialFunctions
 import Base: OneTo, axes, getindex, convert, to_indices, _maybetail, tail, eltype
 import BlockArrays: block, blockindex, unblock
 import DomainSets: indomain
@@ -17,14 +17,13 @@ export SphericalHarmonic, UnitSphere, SphericalCoordinate, Block, associatedlege
     (unblock(A, inds, I), to_indices(A, _maybetail(inds), tail(I))...)
 
 
-associatedlegendre(m) = ((-1)^m*prod(1:2:(2m-1)))*(UltrasphericalWeight((m+1)/2).*Ultraspherical(m+1/2))
 
 abstract type AbstractSphericalCoordinate{T} <: StaticVector{3,T} end
 norm(::AbstractSphericalCoordinate{T}) where T = real(one(T))
 
 struct SphericalCoordinate{T} <: StaticVector{3,T}
-    φ::T
     θ::T
+    φ::T
 end
 
 struct ZSphericalCoordinate{T} <: StaticVector{3,T}
@@ -39,8 +38,8 @@ ZSphericalCoordinate(φ::T, z::V) where {T,V} = ZSphericalCoordinate{promote_typ
 ZSphericalCoordinate(S::SphericalCoordinate) = ZSphericalCoordinate(S.φ, cos(S.θ))
 ZSphericalCoordinate{T}(S::SphericalCoordinate) where T = ZSphericalCoordinate{T}(S.φ, cos(S.θ))
 
-SphericalCoordinate(S::ZSphericalCoordinate) = SphericalCoordinate(S.φ, acos(S.z))
-SphericalCoordinate{T}(S::ZSphericalCoordinate) where T = SphericalCoordinate{T}(S.φ, acos(S.z))
+SphericalCoordinate(S::ZSphericalCoordinate) = SphericalCoordinate(acos(S.z), S.φ)
+SphericalCoordinate{T}(S::ZSphericalCoordinate) where T = SphericalCoordinate{T}(acos(S.z), S.φ)
 
 
 function getindex(S::SphericalCoordinate, k::Int)
@@ -72,16 +71,22 @@ SphericalHarmonic() = SphericalHarmonic{ComplexF64}()
 
 axes(S::SphericalHarmonic{T}) where T = (Inclusion{ZSphericalCoordinate{real(T)}}(UnitSphere{real(T)}()), blockedrange(1:2:∞))
 
+associatedlegendre(m) = ((-1)^m*prod(1:2:(2m-1)))*(UltrasphericalWeight((m+1)/2).*Ultraspherical(m+1/2))
+
 function getindex(S::SphericalHarmonic, x::ZSphericalCoordinate, K::BlockIndex{1})
     ℓ = Int(block(K))
     k = blockindex(K)
     m = k-ℓ
-    exp(im*m*x.φ) * associatedlegendre(abs(m))[x.z,ℓ]
+    m̃ = abs(m)
+    s = m < 0 ? (-1)^m : 1
+    s*sqrt(exp(logabsgamma(ℓ-m̃)[1]-logabsgamma(ℓ+m̃)[1])*(2ℓ-1)/(4π)) * exp(im*m*x.φ) * associatedlegendre(m̃)[x.z,ℓ-m̃]
 end
 
 getindex(S::SphericalHarmonic, x::StaticVector{3}, K::BlockIndex{1}) = 
     S[ZSphericalCoordinate(x), K]
 
 getindex(S::SphericalHarmonic, x::StaticVector{3}, k::Int) = S[x, findblockindex(axes(S,2), k)]
+
+
 
 end # module

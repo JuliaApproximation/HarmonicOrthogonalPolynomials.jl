@@ -13,6 +13,7 @@ IntervalSets = "8197267c-284f-5f27-9208-e0e47529a953"
 LinearAlgebra = "37e2e46d-f89d-539d-b4ee-838fcccc9c8e"
 OrthogonalPolynomialsQuasi = "aa41a628-2c43-45df-899b-83ab96621781"
 QuasiArrays = "c4ea9172-b204-11e9-377d-29865faadc5c"
+SpecialFunctions = "276daf66-3868-5448-9aa4-cd146d93841b"
 StaticArrays = "90137ffa-7385-5640-81b9-e52037218182"
 
 [compat]
@@ -24,6 +25,7 @@ InfiniteArrays = "0.6.1"
 IntervalSets = "0.3.2"
 OrthogonalPolynomialsQuasi = "0.1.0"
 QuasiArrays = "0.2.0"
+SpecialFunctions = "0.10"
 StaticArrays = "0.12.1"
 
 [extras]
