@@ -1,5 +1,5 @@
 using SphericalHarmonics, StaticArrays, Test, InfiniteArrays
-import SphericalHarmonics: ZSphericalCoordinate, associatedlegendre
+import SphericalHarmonics: ZSphericalCoordinate, associatedlegendre, grid
 
 
 @testset "SphericalCoordinate" begin
@@ -39,4 +39,14 @@ end
         -0.125sqrt(35/π)sin(θ)^3*exp(3im*φ)]
 
     @test S[x,Block.(1:4)] == [S[x,Block(1)]; S[x,Block(2)]; S[x,Block(3)]; S[x,Block(4)]]
+end
+
+@testset "Expansion" begin
+    N = 2
+    S = SphericalHarmonic()[:,Block.(1:N)]
+    xyz = axes(S,1)
+    f = xyz -> ((x,y,z) = xyz; exp(x+y*z))
+    @test_broken size(S,2) == 4
+    @test_broken grid(S)  # Should return grid with more than 4 points
+    @test_broken factorize(S) # Should return a Factorization
 end

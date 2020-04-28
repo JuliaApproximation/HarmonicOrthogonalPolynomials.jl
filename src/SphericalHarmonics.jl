@@ -3,8 +3,8 @@ using FastTransforms, LinearAlgebra, OrthogonalPolynomialsQuasi, ContinuumArrays
 import Base: OneTo, axes, getindex, convert, to_indices, _maybetail, tail, eltype
 import BlockArrays: block, blockindex, unblock
 import DomainSets: indomain
-import LinearAlgebra: norm
-import QuasiArrays: to_quasi_index
+import LinearAlgebra: norm, factorize
+import QuasiArrays: to_quasi_index, SubQuasiArray
 
 export SphericalHarmonic, UnitSphere, SphericalCoordinate, Block, associatedlegendre
 
@@ -95,5 +95,12 @@ getindex(S::SphericalHarmonic, x::StaticVector{3}, k::Int) = S[x, findblockindex
 
 # @simplify *(Ac::QuasiAdjoint{<:Any,<:SphericalHarmonic}, B::SphericalHarmonic) = 
 
+
+##
+# Expansion
+##
+
+factorize(L::SubQuasiArray{T,2,<:ChebyshevT,<:Tuple{<:Inclusion,<:OneTo}}) where T =
+    TransformFactorization(grid(L), plan_sphericalharmonics(Array{T}(undef, size(L,2))))
 
 end # module
