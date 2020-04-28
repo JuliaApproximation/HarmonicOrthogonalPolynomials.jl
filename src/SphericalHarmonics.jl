@@ -14,9 +14,15 @@ export SphericalHarmonic, UnitSphere, SphericalCoordinate, Block, associatedlege
 ###
 
 @inline to_indices(A::AbstractQuasiArray, inds, I::Tuple{Block{1}, Vararg{Any}}) =
-    (unblock(A, inds, I), to_indices(A, _maybetail(inds), tail(I))...)
+    Base.invoke(to_indices, Tuple{Any,Any,typeof(I)}, A, inds, I)
+
+@inline to_indices(A::AbstractQuasiArray, inds, I::Tuple{BlockRange{1,R}, Vararg{Any}}) where R =
+    Base.invoke(to_indices, Tuple{Any,Any,typeof(I)}, A, inds, I)
 
 
+###
+# SphericalCoordinate
+###
 
 abstract type AbstractSphericalCoordinate{T} <: StaticVector{3,T} end
 norm(::AbstractSphericalCoordinate{T}) where T = real(one(T))
@@ -87,6 +93,7 @@ getindex(S::SphericalHarmonic, x::StaticVector{3}, K::BlockIndex{1}) =
 
 getindex(S::SphericalHarmonic, x::StaticVector{3}, k::Int) = S[x, findblockindex(axes(S,2), k)]
 
+# @simplify *(Ac::QuasiAdjoint{<:Any,<:SphericalHarmonic}, B::SphericalHarmonic) = 
 
 
 end # module
