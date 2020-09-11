@@ -1,4 +1,4 @@
-using SphericalHarmonics, StaticArrays, Test, InfiniteArrays
+using SphericalHarmonics, StaticArrays, Test, InfiniteArrays, LinearAlgebra
 import SphericalHarmonics: ZSphericalCoordinate, associatedlegendre, grid
 
 
@@ -46,7 +46,7 @@ end
     S = SphericalHarmonic()[:,Block.(1:N)]
     xyz = axes(S,1)
     f = xyz -> ((x,y,z) = xyz; exp(x+y*z))
-    @test_broken size(S,2) == 4
+    @test size(S,2) == 4
     @test_broken grid(S)  # Should return grid with more than 4 points
     @test_broken factorize(S) # Should return a Factorization
 end

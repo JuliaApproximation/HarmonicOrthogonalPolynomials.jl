@@ -9,16 +9,6 @@ import QuasiArrays: to_quasi_index, SubQuasiArray
 export SphericalHarmonic, UnitSphere, SphericalCoordinate, Block, associatedlegendre
 
 
-###
-# BlockQuasiArray support
-###
-
-@inline to_indices(A::AbstractQuasiArray, inds, I::Tuple{Block{1}, Vararg{Any}}) =
-    Base.invoke(to_indices, Tuple{Any,Any,typeof(I)}, A, inds, I)
-
-@inline to_indices(A::AbstractQuasiArray, inds, I::Tuple{BlockRange{1,R}, Vararg{Any}}) where R =
-    Base.invoke(to_indices, Tuple{Any,Any,typeof(I)}, A, inds, I)
-
 
 ###
 # SphericalCoordinate
@@ -72,10 +62,12 @@ convert(::Type{ZSphericalCoordinate}, S::SphericalCoordinate) = ZSphericalCoordi
 convert(::Type{ZSphericalCoordinate{T}}, S::SphericalCoordinate) where T = ZSphericalCoordinate{T}(S)
 
 
-struct SphericalHarmonic{T} <: Basis{T} end
+abstract type AbstractSphericalHarmonic{T} <: Basis{T} end
+struct RealSphericalHarmonic{T} <: AbstractSphericalHarmonic{T} end
+struct SphericalHarmonic{T} <: AbstractSphericalHarmonic{T} end
 SphericalHarmonic() = SphericalHarmonic{ComplexF64}()
 
-axes(S::SphericalHarmonic{T}) where T = (Inclusion{ZSphericalCoordinate{real(T)}}(UnitSphere{real(T)}()), blockedrange(1:2:∞))
+axes(S::AbstractSphericalHarmonic{T}) where T = (Inclusion{ZSphericalCoordinate{real(T)}}(UnitSphere{real(T)}()), blockedrange(1:2:∞))
 
 associatedlegendre(m) = ((-1)^m*prod(1:2:(2m-1)))*(UltrasphericalWeight((m+1)/2).*Ultraspherical(m+1/2))
 
@@ -88,10 +80,10 @@ function getindex(S::SphericalHarmonic, x::ZSphericalCoordinate, K::BlockIndex{1
     s*sqrt(exp(logabsgamma(ℓ-m̃)[1]-logabsgamma(ℓ+m̃)[1])*(2ℓ-1)/(4π)) * exp(im*m*x.φ) * associatedlegendre(m̃)[x.z,ℓ-m̃]
 end
 
-getindex(S::SphericalHarmonic, x::StaticVector{3}, K::BlockIndex{1}) = 
+getindex(S::AbstractSphericalHarmonic, x::StaticVector{3}, K::BlockIndex{1}) = 
     S[ZSphericalCoordinate(x), K]
 
-getindex(S::SphericalHarmonic, x::StaticVector{3}, k::Int) = S[x, findblockindex(axes(S,2), k)]
+getindex(S::AbstractSphericalHarmonic, x::StaticVector{3}, k::Int) = S[x, findblockindex(axes(S,2), k)]
 
 # @simplify *(Ac::QuasiAdjoint{<:Any,<:SphericalHarmonic}, B::SphericalHarmonic) = 
 
@@ -100,7 +92,9 @@ getindex(S::SphericalHarmonic, x::StaticVector{3}, k::Int) = S[x, findblockindex
 # Expansion
 ##
 
-factorize(L::SubQuasiArray{T,2,<:ChebyshevT,<:Tuple{<:Inclusion,<:OneTo}}) where T =
+# const FiniteSphericalHarmonic{T} = SubQuasiArray{T,2,SphericalHarmonic{T},<:Tuple{<:Inclusion,<:OneTo}}
+
+factorize(L::SubQuasiArray{T,2,<:SphericalHarmonic,<:Tuple{<:Inclusion,<:OneTo}}) where T =
     TransformFactorization(grid(L), plan_sphericalharmonics(Array{T}(undef, size(L,2))))
 
 end # module
