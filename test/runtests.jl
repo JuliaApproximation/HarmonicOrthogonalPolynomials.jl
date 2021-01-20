@@ -43,10 +43,27 @@ end
 
 @testset "Expansion" begin
     N = 2
-    S = SphericalHarmonic()[:,Block.(1:N)]
+    S = SphericalHarmonic()[:,Block.(Base.OneTo(N))]
     xyz = axes(S,1)
     f = xyz -> ((x,y,z) = xyz; exp(x+y*z))
     @test size(S,2) == 4
-    @test_broken grid(S)  # Should return grid with more than 4 points
-    @test_broken factorize(S) # Should return a Factorization
+    g = grid(S)
+    @test eltype(g) == SphericalCoordinate{Float64}
+    @testset "compare with FastTransforms.jl/examples/sphere.jl" begin
+        # The colatitudinal grid (mod $\pi$):
+        N = 2
+        θ = (0.5:N-0.5)/N
+        # The longitudinal grid (mod $\pi$):
+        M = 2*N-1
+        φ = (0:M-1)*2/M
+        X = [sinpi(θ)*cospi(φ) for θ in θ, φ in φ]
+        Y = [sinpi(θ)*sinpi(φ) for θ in θ, φ in φ]
+        Z = [cospi(θ) for θ in θ, φ in φ]
+
+        @test g ≈ SVector.(X, Y, Z)
+    end
+        
+    P = factorize(S)
+    @test eltype(P) == Float64
+    P \ f.(g)
 end

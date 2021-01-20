@@ -1,10 +1,14 @@
 module SphericalHarmonics
-using FastTransforms, LinearAlgebra, OrthogonalPolynomialsQuasi, ContinuumArrays, DomainSets, BlockArrays, InfiniteArrays, StaticArrays, QuasiArrays, Base, SpecialFunctions
+using FastTransforms, LinearAlgebra, OrthogonalPolynomialsQuasi, ContinuumArrays, DomainSets, 
+        BlockArrays, BlockBandedMatrices, InfiniteArrays, StaticArrays, QuasiArrays, Base, SpecialFunctions
 import Base: OneTo, axes, getindex, convert, to_indices, _maybetail, tail, eltype
-import BlockArrays: block, blockindex, unblock
+import BlockArrays: block, blockindex, unblock, BlockSlice
 import DomainSets: indomain
 import LinearAlgebra: norm, factorize
 import QuasiArrays: to_quasi_index, SubQuasiArray
+import ContinuumArrays: TransformFactorization
+import BlockBandedMatrices: BlockRange1
+import FastTransforms: Plan
 
 export SphericalHarmonic, UnitSphere, SphericalCoordinate, Block, associatedlegendre
 
@@ -92,9 +96,27 @@ getindex(S::AbstractSphericalHarmonic, x::StaticVector{3}, k::Int) = S[x, findbl
 # Expansion
 ##
 
-# const FiniteSphericalHarmonic{T} = SubQuasiArray{T,2,SphericalHarmonic{T},<:Tuple{<:Inclusion,<:OneTo}}
+const FiniteSphericalHarmonic{T} = SubQuasiArray{T,2,SphericalHarmonic{T},<:Tuple{<:Inclusion,<:BlockSlice{BlockRange1{OneTo{Int}}}}}
 
-factorize(L::SubQuasiArray{T,2,<:SphericalHarmonic,<:Tuple{<:Inclusion,<:OneTo}}) where T =
-    TransformFactorization(grid(L), plan_sphericalharmonics(Array{T}(undef, size(L,2))))
+function grid(S::FiniteSphericalHarmonic)
+    T = real(eltype(S))
+    N = blocksize(S,2)
+    # The colatitudinal grid (mod $\pi$):
+    θ = ((1:N) .- one(T)/2)/N
+    # The longitudinal grid (mod $\pi$):
+    M = 2*N-1
+    φ = (0:M-1)*2/convert(T, M)
+    SphericalCoordinate.(π*θ, π*φ')
+end
+
+struct SphericalHarmonicTransform{T} <: Plan{T}
+    sph2fourier::FastTransforms.FTPlan{real(T),2,FastTransforms.SPHERE}
+    analysis::FastTransforms.FTPlan{real(T),2,FastTransforms.SPHEREANALYSIS}
+end
+
+SphericalHarmonicTransform{T}(N::Int) where T = SphericalHarmonicTransform{T}(plan_sph2fourier(T, N), plan_sph_analysis(T, N, 2N-1))
+
+factorize(S::FiniteSphericalHarmonic{T}) where T =
+    TransformFactorization(grid(S), SphericalHarmonicTransform{T}(size(S,2)))
 
 end # module
