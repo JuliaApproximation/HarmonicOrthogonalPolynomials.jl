@@ -1,6 +1,13 @@
-using SphericalHarmonics, StaticArrays, Test, InfiniteArrays, LinearAlgebra
-import SphericalHarmonics: ZSphericalCoordinate, associatedlegendre, grid
+using SphericalHarmonics, StaticArrays, Test, InfiniteArrays, LinearAlgebra, BlockArrays
+import SphericalHarmonics: ZSphericalCoordinate, associatedlegendre, grid, SphereTrav
 
+@testset "SphereTrav" begin
+    A = SphereTrav([1 2 3; 4 0 0])
+    @test A == [1, 2, 4, 3]
+    @test A[Block(2)] == [2,4,3]
+    B = SphereTrav([1 2 3 4 5; 6 7 8 0 0; 9 0 0 0 0 ])
+    @test B == [1, 2, 6, 3, 4, 7, 9, 8, 5]
+end
 
 @testset "SphericalCoordinate" begin
     @test SphericalCoordinate(0.2,0.1) ≈ ZSphericalCoordinate(0.1,cos(0.2))
@@ -14,12 +21,12 @@ end
 
 @testset "Evaluation" begin
     S = SphericalHarmonic()
-    @test eltype(axes(S,1)) == ZSphericalCoordinate{Float64}
+    @test eltype(axes(S,1)) == SphericalCoordinate{Float64}
 
     θ,φ = 0.1,0.2
     x = SphericalCoordinate(θ,φ)
     @test S[x, Block(1)[1]] == S[x,1] == sqrt(1/(4π))
-    @test view(S,x, Block(1)).indices[1] isa ZSphericalCoordinate
+    @test view(S,x, Block(1)).indices[1] isa SphericalCoordinate
     @test S[x, Block(1)] == [sqrt(1/(4π))]
 
     @test associatedlegendre(0)[0.1,1:2] ≈ [1.0,0.1]
@@ -44,8 +51,7 @@ end
 @testset "Expansion" begin
     N = 2
     S = SphericalHarmonic()[:,Block.(Base.OneTo(N))]
-    xyz = axes(S,1)
-    f = xyz -> ((x,y,z) = xyz; exp(x+y*z))
+    
     @test size(S,2) == 4
     g = grid(S)
     @test eltype(g) == SphericalCoordinate{Float64}
@@ -59,11 +65,14 @@ end
         X = [sinpi(θ)*cospi(φ) for θ in θ, φ in φ]
         Y = [sinpi(θ)*sinpi(φ) for θ in θ, φ in φ]
         Z = [cospi(θ) for θ in θ, φ in φ]
-
         @test g ≈ SVector.(X, Y, Z)
     end
         
     P = factorize(S)
     @test eltype(P) == Float64
-    P \ f.(g)
+    xyz = axes(S,1)
+    c = P \ (xyz -> 1).(xyz)
+    @test blocksize(c,1) == blocksize(S,2)
+    @test c == S \ (xyz -> 1).(xyz)
+    @test (S * c)[SphericalCoordinate(0.1,0.2)] ≈ 1
 end

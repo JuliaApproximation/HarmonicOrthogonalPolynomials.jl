@@ -1,12 +1,13 @@
 module SphericalHarmonics
 using FastTransforms, LinearAlgebra, OrthogonalPolynomialsQuasi, ContinuumArrays, DomainSets, 
         BlockArrays, BlockBandedMatrices, InfiniteArrays, StaticArrays, QuasiArrays, Base, SpecialFunctions
-import Base: OneTo, axes, getindex, convert, to_indices, _maybetail, tail, eltype
+import Base: OneTo, axes, getindex, convert, to_indices, _maybetail, tail, eltype, *
 import BlockArrays: block, blockindex, unblock, BlockSlice
 import DomainSets: indomain
 import LinearAlgebra: norm, factorize
 import QuasiArrays: to_quasi_index, SubQuasiArray
 import ContinuumArrays: TransformFactorization
+import OrthogonalPolynomialsQuasi: checkpoints
 import BlockBandedMatrices: BlockRange1
 import FastTransforms: Plan
 
@@ -15,18 +16,72 @@ export SphericalHarmonic, UnitSphere, SphericalCoordinate, Block, associatedlege
 
 
 ###
+# SphereTrav
+###
+
+
+"""
+    SphereTrav(A::AbstractMatrix)
+
+is an anlogue of `DiagTrav` but for coefficients stored according to 
+FastTransforms.jl spherical harmonics layout
+"""
+struct SphereTrav{T, AA<:AbstractMatrix{T}} <: AbstractBlockVector{T}
+    matrix::AA
+    function SphereTrav{T, AA}(matrix::AA) where {T,AA<:AbstractMatrix{T}}
+        n,m = size(matrix)
+        m == 2n-1 || throw(ArgumentError("size must match"))
+        new{T,AA}(matrix)
+    end
+end
+
+SphereTrav{T}(matrix::AbstractMatrix{T}) where T = SphereTrav{T,typeof(matrix)}(matrix)
+SphereTrav(matrix::AbstractMatrix{T}) where T = SphereTrav{T}(matrix)
+
+axes(A::SphereTrav) = (blockedrange(range(1; step=2, length=size(A.matrix,1))),)
+
+function getindex(A::SphereTrav, K::Block{1})
+    k = Int(K)
+    m = size(A.matrix,1)
+    st = stride(A.matrix,2)
+    # nonnegative terms
+    p = A.matrix[range(k; step=2*st-1, length=k)]
+    k == 1 && return p
+    # negative terms
+    n = A.matrix[range(k+st-1; step=2*st-1, length=k-1)]
+    [reverse!(n); p] 
+end
+
+getindex(A::SphereTrav, k::Int) = A[findblockindex(axes(A,1), k)]
+
+###
 # SphericalCoordinate
 ###
 
 abstract type AbstractSphericalCoordinate{T} <: StaticVector{3,T} end
 norm(::AbstractSphericalCoordinate{T}) where T = real(one(T))
+Base.in(::AbstractSphericalCoordinate, ::UnitSphere{T}) where T = true
+"""
+   SphericalCoordinate(θ, φ)
 
-struct SphericalCoordinate{T} <: StaticVector{3,T}
+represents a point in the unit sphere as a `StaticVector{3}` in
+spherical coordinates where the pole is `SphericalCoordinate(0,φ) == SVector(0,0,1)`
+and `SphericalCoordinate(π/2,0) == SVector(1,0,0)`. 
+"""
+struct SphericalCoordinate{T} <: AbstractSphericalCoordinate{T}
     θ::T
     φ::T
 end
 
-struct ZSphericalCoordinate{T} <: StaticVector{3,T}
+SphericalCoordinate(θ, φ) = SphericalCoordinate(promote(θ, φ)...)
+
+"""
+   ZSphericalCoordinate(φ, z)
+
+represents a point in the unit sphere as a `StaticVector{3}` in
+where `z` is specified while the angle coordinate is given by spherical coordinates where the pole is `SVector(0,0,1)`.
+"""
+struct ZSphericalCoordinate{T} <: AbstractSphericalCoordinate{T}
     φ::T
     z::T
     function ZSphericalCoordinate{T}(φ::T, z::T) where T 
@@ -66,12 +121,14 @@ convert(::Type{ZSphericalCoordinate}, S::SphericalCoordinate) = ZSphericalCoordi
 convert(::Type{ZSphericalCoordinate{T}}, S::SphericalCoordinate) where T = ZSphericalCoordinate{T}(S)
 
 
+checkpoints(::UnitSphere{T}) where T = [SphericalCoordinate{T}(0.1,0.2), SphericalCoordinate{T}(0.3,0.4)]
+
 abstract type AbstractSphericalHarmonic{T} <: Basis{T} end
 struct RealSphericalHarmonic{T} <: AbstractSphericalHarmonic{T} end
 struct SphericalHarmonic{T} <: AbstractSphericalHarmonic{T} end
 SphericalHarmonic() = SphericalHarmonic{ComplexF64}()
 
-axes(S::AbstractSphericalHarmonic{T}) where T = (Inclusion{ZSphericalCoordinate{real(T)}}(UnitSphere{real(T)}()), blockedrange(1:2:∞))
+axes(S::AbstractSphericalHarmonic{T}) where T = (Inclusion{SphericalCoordinate{real(T)}}(UnitSphere{real(T)}()), blockedrange(1:2:∞))
 
 associatedlegendre(m) = ((-1)^m*prod(1:2:(2m-1)))*(UltrasphericalWeight((m+1)/2).*Ultraspherical(m+1/2))
 
@@ -109,14 +166,18 @@ function grid(S::FiniteSphericalHarmonic)
     SphericalCoordinate.(π*θ, π*φ')
 end
 
+
+
 struct SphericalHarmonicTransform{T} <: Plan{T}
-    sph2fourier::FastTransforms.FTPlan{real(T),2,FastTransforms.SPHERE}
-    analysis::FastTransforms.FTPlan{real(T),2,FastTransforms.SPHEREANALYSIS}
+    sph2fourier::FastTransforms.FTPlan{T,2,FastTransforms.SPHERE}
+    analysis::FastTransforms.FTPlan{T,2,FastTransforms.SPHEREANALYSIS}
 end
 
 SphericalHarmonicTransform{T}(N::Int) where T = SphericalHarmonicTransform{T}(plan_sph2fourier(T, N), plan_sph_analysis(T, N, 2N-1))
 
+*(P::SphericalHarmonicTransform{T}, f::Matrix{T}) where T = SphereTrav(P.sph2fourier \ (P.analysis * f))
+
 factorize(S::FiniteSphericalHarmonic{T}) where T =
-    TransformFactorization(grid(S), SphericalHarmonicTransform{T}(size(S,2)))
+    TransformFactorization(grid(S), SphericalHarmonicTransform{real(T)}(blocksize(S,2)))
 
 end # module
