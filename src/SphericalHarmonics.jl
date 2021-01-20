@@ -1,7 +1,7 @@
 module SphericalHarmonics
 using FastTransforms, LinearAlgebra, OrthogonalPolynomialsQuasi, ContinuumArrays, DomainSets, 
         BlockArrays, BlockBandedMatrices, InfiniteArrays, StaticArrays, QuasiArrays, Base, SpecialFunctions
-import Base: OneTo, axes, getindex, convert, to_indices, _maybetail, tail, eltype, *
+import Base: OneTo, axes, getindex, convert, to_indices, _maybetail, tail, eltype, *, ==, ^, copy
 import BlockArrays: block, blockindex, unblock, BlockSlice
 import DomainSets: indomain
 import LinearAlgebra: norm, factorize
@@ -10,9 +10,12 @@ import ContinuumArrays: TransformFactorization
 import OrthogonalPolynomialsQuasi: checkpoints
 import BlockBandedMatrices: BlockRange1
 import FastTransforms: Plan
+import QuasiArrays: LazyQuasiMatrix, LazyQuasiArrayStyle
 
 export SphericalHarmonic, UnitSphere, SphericalCoordinate, Block, associatedlegendre
 
+
+include("multivariateops.jl")
 
 
 ###
@@ -123,7 +126,7 @@ convert(::Type{ZSphericalCoordinate{T}}, S::SphericalCoordinate) where T = ZSphe
 
 checkpoints(::UnitSphere{T}) where T = [SphericalCoordinate{T}(0.1,0.2), SphericalCoordinate{T}(0.3,0.4)]
 
-abstract type AbstractSphericalHarmonic{T} <: Basis{T} end
+abstract type AbstractSphericalHarmonic{T} <: MultivariateOrthogonalPolynomial{3,T} end
 struct RealSphericalHarmonic{T} <: AbstractSphericalHarmonic{T} end
 struct SphericalHarmonic{T} <: AbstractSphericalHarmonic{T} end
 SphericalHarmonic() = SphericalHarmonic{ComplexF64}()

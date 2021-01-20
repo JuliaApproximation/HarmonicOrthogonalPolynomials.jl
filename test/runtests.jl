@@ -49,30 +49,50 @@ end
 end
 
 @testset "Expansion" begin
-    N = 2
-    S = SphericalHarmonic()[:,Block.(Base.OneTo(N))]
-    
-    @test size(S,2) == 4
-    g = grid(S)
-    @test eltype(g) == SphericalCoordinate{Float64}
-    @testset "compare with FastTransforms.jl/examples/sphere.jl" begin
-        # The colatitudinal grid (mod $\pi$):
+    @testset "finite block" begin
         N = 2
-        θ = (0.5:N-0.5)/N
-        # The longitudinal grid (mod $\pi$):
-        M = 2*N-1
-        φ = (0:M-1)*2/M
-        X = [sinpi(θ)*cospi(φ) for θ in θ, φ in φ]
-        Y = [sinpi(θ)*sinpi(φ) for θ in θ, φ in φ]
-        Z = [cospi(θ) for θ in θ, φ in φ]
-        @test g ≈ SVector.(X, Y, Z)
-    end
+        S = SphericalHarmonic()[:,Block.(Base.OneTo(N))]
         
-    P = factorize(S)
-    @test eltype(P) == Float64
-    xyz = axes(S,1)
-    c = P \ (xyz -> 1).(xyz)
-    @test blocksize(c,1) == blocksize(S,2)
-    @test c == S \ (xyz -> 1).(xyz)
-    @test (S * c)[SphericalCoordinate(0.1,0.2)] ≈ 1
+        @test size(S,2) == 4
+        g = grid(S)
+        @test eltype(g) == SphericalCoordinate{Float64}
+        @testset "compare with FastTransforms.jl/examples/sphere.jl" begin
+            # The colatitudinal grid (mod $\pi$):
+            N = 2
+            θ = (0.5:N-0.5)/N
+            # The longitudinal grid (mod $\pi$):
+            M = 2*N-1
+            φ = (0:M-1)*2/M
+            X = [sinpi(θ)*cospi(φ) for θ in θ, φ in φ]
+            Y = [sinpi(θ)*sinpi(φ) for θ in θ, φ in φ]
+            Z = [cospi(θ) for θ in θ, φ in φ]
+            @test g ≈ SVector.(X, Y, Z)
+        end
+            
+        P = factorize(S)
+        @test eltype(P) == Float64
+        xyz = axes(S,1)
+        c = P \ (xyz -> 1).(xyz)
+        @test blocksize(c,1) == blocksize(S,2)
+        @test c == S \ (xyz -> 1).(xyz)
+        @test (S * c)[SphericalCoordinate(0.1,0.2)] ≈ 1
+
+        f = c -> ((x,y,z) = c; 1 + x + y + z)
+        u = S * (S \ f.(xyz))
+        u[SphericalCoordinate(0.1,0.2)]
+    end
+
+    @testset "adaptive" begin
+        S = SphericalHarmonic()
+        u = S * (S \ (xyz -> 1).(xyz))
+        @test u[SphericalCoordinate(0.1,0.2)] ≈ 1
+
+        f = c -> exp(-100*c.θ^2)
+        u = S * (S \ f.(xyz))
+        r = SphericalCoordinate(0.1,0.2)
+        @test u[r] ≈ f(r)
+
+        f = c -> ((x,y,z) = c; 1 + x + y + z)
+        u = S * (S \ f.(xyz))
+    end
 end
