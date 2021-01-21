@@ -134,14 +134,16 @@ SphericalHarmonic() = SphericalHarmonic{ComplexF64}()
 axes(S::AbstractSphericalHarmonic{T}) where T = (Inclusion{SphericalCoordinate{real(T)}}(UnitSphere{real(T)}()), blockedrange(1:2:∞))
 
 associatedlegendre(m) = ((-1)^m*prod(1:2:(2m-1)))*(UltrasphericalWeight((m+1)/2).*Ultraspherical(m+1/2))
+lgamma(n) = logabsgamma(n)[1]
 
-function getindex(S::SphericalHarmonic, x::ZSphericalCoordinate, K::BlockIndex{1})
+
+function getindex(S::SphericalHarmonic{T}, x::ZSphericalCoordinate, K::BlockIndex{1}) where T
     ℓ = Int(block(K))
     k = blockindex(K)
     m = k-ℓ
     m̃ = abs(m)
-    s = m < 0 ? (-1)^m : 1
-    s*sqrt(exp(logabsgamma(ℓ-m̃)[1]-logabsgamma(ℓ+m̃)[1])*(2ℓ-1)/(4π)) * exp(im*m*x.φ) * associatedlegendre(m̃)[x.z,ℓ-m̃]
+    θ = acos(x.z)
+    exp((lgamma(ℓ+m̃)+lgamma(ℓ-m̃)-2lgamma(ℓ))/2)*sqrt((2ℓ-1)/(4π)) * exp(im*m*x.φ) * sin(θ/2)^m̃ * cos(θ/2)^m̃ * Jacobi{real(T)}(m̃,m̃)[x.z, ℓ-m̃]
 end
 
 getindex(S::AbstractSphericalHarmonic, x::StaticVector{3}, K::BlockIndex{1}) = 
@@ -172,15 +174,15 @@ end
 
 
 struct SphericalHarmonicTransform{T} <: Plan{T}
-    sph2fourier::FastTransforms.FTPlan{T,2,FastTransforms.SPHERE}
-    analysis::FastTransforms.FTPlan{T,2,FastTransforms.SPHEREANALYSIS}
+    sph2fourier::FastTransforms.FTPlan{T,2,FastTransforms.SPINSPHERE}
+    analysis::FastTransforms.FTPlan{T,2,FastTransforms.SPINSPHEREANALYSIS}
 end
 
-SphericalHarmonicTransform{T}(N::Int) where T = SphericalHarmonicTransform{T}(plan_sph2fourier(T, N), plan_sph_analysis(T, N, 2N-1))
+SphericalHarmonicTransform{T}(N::Int) where T<:Complex = SphericalHarmonicTransform{T}(plan_spinsph2fourier(T, N, 0), plan_spinsph_analysis(T, N, 2N-1, 0))
 
 *(P::SphericalHarmonicTransform{T}, f::Matrix{T}) where T = SphereTrav(P.sph2fourier \ (P.analysis * f))
 
 factorize(S::FiniteSphericalHarmonic{T}) where T =
-    TransformFactorization(grid(S), SphericalHarmonicTransform{real(T)}(blocksize(S,2)))
+    TransformFactorization(grid(S), SphericalHarmonicTransform{T}(blocksize(S,2)))
 
 end # module

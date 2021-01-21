@@ -1,5 +1,12 @@
-using SphericalHarmonics, StaticArrays, Test, InfiniteArrays, LinearAlgebra, BlockArrays
+using SphericalHarmonics, StaticArrays, Test, InfiniteArrays, LinearAlgebra, BlockArrays, OrthogonalPolynomialsQuasi
 import SphericalHarmonics: ZSphericalCoordinate, associatedlegendre, grid, SphereTrav
+
+# @testset "associated legendre" begin
+#     m = 2
+#     θ = 0.1
+#     x = cos(θ)
+#     @test associatedlegendre(m)[x,1:10] ≈ -(2:11) .* (sin(θ/2)^m * cos(θ/2)^m * Jacobi(m,m)[x,1:10])
+# end
 
 @testset "SphereTrav" begin
     A = SphereTrav([1 2 3; 4 0 0])
@@ -49,29 +56,34 @@ end
 end
 
 @testset "Expansion" begin
-    @testset "finite block" begin
+    @testset "grid" begin
         N = 2
         S = SphericalHarmonic()[:,Block.(Base.OneTo(N))]
         
         @test size(S,2) == 4
         g = grid(S)
         @test eltype(g) == SphericalCoordinate{Float64}
-        @testset "compare with FastTransforms.jl/examples/sphere.jl" begin
-            # The colatitudinal grid (mod $\pi$):
-            N = 2
-            θ = (0.5:N-0.5)/N
-            # The longitudinal grid (mod $\pi$):
-            M = 2*N-1
-            φ = (0:M-1)*2/M
-            X = [sinpi(θ)*cospi(φ) for θ in θ, φ in φ]
-            Y = [sinpi(θ)*sinpi(φ) for θ in θ, φ in φ]
-            Z = [cospi(θ) for θ in θ, φ in φ]
-            @test g ≈ SVector.(X, Y, Z)
-        end
+    
+        # compare with FastTransforms.jl/examples/sphere.jl
+        # The colatitudinal grid (mod $\pi$):
+        N = 2
+        θ = (0.5:N-0.5)/N
+        # The longitudinal grid (mod $\pi$):
+        M = 2*N-1
+        φ = (0:M-1)*2/M
+        X = [sinpi(θ)*cospi(φ) for θ in θ, φ in φ]
+        Y = [sinpi(θ)*sinpi(φ) for θ in θ, φ in φ]
+        Z = [cospi(θ) for θ in θ, φ in φ]
+        @test g ≈ SVector.(X, Y, Z)
+    end
+
+    @testset "transform" begin
+        N = 2
+        S = SphericalHarmonic()[:,Block.(Base.OneTo(N))]
+        xyz = axes(S,1)
             
         P = factorize(S)
         @test eltype(P) == Float64
-        xyz = axes(S,1)
         c = P \ (xyz -> 1).(xyz)
         @test blocksize(c,1) == blocksize(S,2)
         @test c == S \ (xyz -> 1).(xyz)
@@ -79,11 +91,13 @@ end
 
         f = c -> ((x,y,z) = c; 1 + x + y + z)
         u = S * (S \ f.(xyz))
-        u[SphericalCoordinate(0.1,0.2)]
+        p = SphericalCoordinate(0.1,0.2)
+        @test u[p] ≈ 1+sum(p)
     end
 
     @testset "adaptive" begin
         S = SphericalHarmonic()
+        xyz = axes(S,1)
         u = S * (S \ (xyz -> 1).(xyz))
         @test u[SphericalCoordinate(0.1,0.2)] ≈ 1
 
@@ -94,5 +108,11 @@ end
 
         f = c -> ((x,y,z) = c; 1 + x + y + z)
         u = S * (S \ f.(xyz))
+        p = SphericalCoordinate(0.1,0.2)
+        @test u[p] ≈ 1+sum(p)
+
+        f = c -> ((x,y,z) = c; exp(x)*cos(y*sin(z)))
+        u = S * (S \ f.(xyz))
+        @test u[p] ≈ f(p)
     end
 end
