@@ -12,7 +12,7 @@ import BlockBandedMatrices: BlockRange1
 import FastTransforms: Plan
 import QuasiArrays: LazyQuasiMatrix, LazyQuasiArrayStyle
 
-export SphericalHarmonic, UnitSphere, SphericalCoordinate, Block, associatedlegendre
+export SphericalHarmonic, UnitSphere, SphericalCoordinate, Block, associatedlegendre, RealSphericalHarmonic
 
 
 include("multivariateops.jl")
@@ -130,6 +130,7 @@ abstract type AbstractSphericalHarmonic{T} <: MultivariateOrthogonalPolynomial{3
 struct RealSphericalHarmonic{T} <: AbstractSphericalHarmonic{T} end
 struct SphericalHarmonic{T} <: AbstractSphericalHarmonic{T} end
 SphericalHarmonic() = SphericalHarmonic{ComplexF64}()
+RealSphericalHarmonic() = RealSphericalHarmonic{Float64}()
 
 axes(S::AbstractSphericalHarmonic{T}) where T = (Inclusion{SphericalCoordinate{real(T)}}(UnitSphere{real(T)}()), blockedrange(1:2:∞))
 
@@ -144,6 +145,18 @@ function getindex(S::SphericalHarmonic{T}, x::ZSphericalCoordinate, K::BlockInde
     m̃ = abs(m)
     θ = acos(x.z)
     exp((lgamma(ℓ+m̃)+lgamma(ℓ-m̃)-2lgamma(ℓ))/2)*sqrt((2ℓ-1)/(4π)) * exp(im*m*x.φ) * sin(θ/2)^m̃ * cos(θ/2)^m̃ * Jacobi{real(T)}(m̃,m̃)[x.z, ℓ-m̃]
+end
+
+function getindex(S::RealSphericalHarmonic{T}, x::ZSphericalCoordinate, K::BlockIndex{1}) where T
+    ℓ = Int(block(K))
+    k = blockindex(K)
+    m = k-ℓ
+    m̃ = abs(m)
+    θ = acos(x.z)
+    indepm = (-1)^m̃*exp((lgamma(ℓ-m̃)-lgamma(ℓ+m̃))/2)*sqrt((2ℓ-1)/(2π))*associatedlegendre(m̃)[x.z,ℓ-m̃]
+    m>0 && return cos(m*x.φ)*indepm
+    m==0 && return cos(m*x.φ)/sqrt(2)*indepm
+    m<0 && return sin(m̃*x.φ)*indepm
 end
 
 getindex(S::AbstractSphericalHarmonic, x::StaticVector{3}, K::BlockIndex{1}) = 
@@ -179,6 +192,8 @@ struct SphericalHarmonicTransform{T} <: Plan{T}
 end
 
 SphericalHarmonicTransform{T}(N::Int) where T<:Complex = SphericalHarmonicTransform{T}(plan_spinsph2fourier(T, N, 0), plan_spinsph_analysis(T, N, 2N-1, 0))
+
+SphericalHarmonicTransform{T}(N::Int) where T<:Real = SphericalHarmonicTransform{T}(plan_sph2fourier(T, N), plan_sph_analysis(T, N, 2N-1))
 
 *(P::SphericalHarmonicTransform{T}, f::Matrix{T}) where T = SphereTrav(P.sph2fourier \ (P.analysis * f))
 

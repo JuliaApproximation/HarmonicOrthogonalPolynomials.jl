@@ -55,6 +55,19 @@ end
     @test S[x,Block.(1:4)] == [S[x,Block(1)]; S[x,Block(2)]; S[x,Block(3)]; S[x,Block(4)]]
 end
 
+@testset "Real Evaluation" begin
+    S = SphericalHarmonic()
+    R = RealSphericalHarmonic()
+    @test eltype(axes(R,1)) == SphericalCoordinate{Float64}
+    θ,φ = 0.1,0.2
+    x = SphericalCoordinate(θ,φ)
+    @test R[x, Block(1)[1]] ≈ R[x,1] ≈ sqrt(1/(4π))
+    @test R[x, Block(2)][2] ≈ S[x, Block(2)][2]
+    # Careful here with the (-1) conventions?
+    @test R[x, Block(2)][3] ≈ 1/sqrt(2)*(S[x, Block(2)][3]+S[x, Block(2)][1])
+    @test R[x, Block(2)][1] ≈ im/sqrt(2)*(S[x, Block(2)][1]-S[x, Block(2)][3])
+end
+
 @testset "Expansion" begin
     @testset "grid" begin
         N = 2
