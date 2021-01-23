@@ -147,16 +147,32 @@ function getindex(S::SphericalHarmonic{T}, x::ZSphericalCoordinate, K::BlockInde
     exp((lgamma(ℓ+m̃)+lgamma(ℓ-m̃)-2lgamma(ℓ))/2)*sqrt((2ℓ-1)/(4π)) * exp(im*m*x.φ) * sin(θ/2)^m̃ * cos(θ/2)^m̃ * Jacobi{real(T)}(m̃,m̃)[x.z, ℓ-m̃]
 end
 
+# function getindex(S::RealSphericalHarmonic{T}, x::ZSphericalCoordinate, K::BlockIndex{1}) where T
+#     # sorts entries by ...-2,-1,0,1,2... scheme
+#     ℓ = Int(block(K))
+#     k = blockindex(K)
+#     m = k-ℓ
+#     m̃ = abs(m)
+#     indepm = (-1)^m̃*exp((lgamma(ℓ-m̃)-lgamma(ℓ+m̃))/2)*sqrt((2ℓ-1)/(2π))*associatedlegendre(m̃)[x.z,ℓ-m̃]
+#     m>0 && return cos(m*x.φ)*indepm
+#     m==0 && return cos(m*x.φ)/sqrt(2)*indepm
+#     m<0 && return sin(m̃*x.φ)*indepm
+# end
+
 function getindex(S::RealSphericalHarmonic{T}, x::ZSphericalCoordinate, K::BlockIndex{1}) where T
+    # starts with m=0, then alternates between sin and cos terms, 
+    # even entries correspond to cos terms, odd entries correspond to sin terms
     ℓ = Int(block(K))
-    k = blockindex(K)
-    m = k-ℓ
-    m̃ = abs(m)
-    θ = acos(x.z)
-    indepm = (-1)^m̃*exp((lgamma(ℓ-m̃)-lgamma(ℓ+m̃))/2)*sqrt((2ℓ-1)/(2π))*associatedlegendre(m̃)[x.z,ℓ-m̃]
-    m>0 && return cos(m*x.φ)*indepm
-    m==0 && return cos(m*x.φ)/sqrt(2)*indepm
-    m<0 && return sin(m̃*x.φ)*indepm
+    m = blockindex(K)-1
+    if m==0
+        return sqrt((2ℓ-1)/(4*π))*associatedlegendre(0)[x.z,ℓ]
+    elseif isodd(m)
+        m̃ = abs(m)
+        return sin(m̃*x.φ)*(-1)^m̃*exp((lgamma(ℓ-m̃)-lgamma(ℓ+m̃))/2)*sqrt((2ℓ-1)/(2*π))*associatedlegendre(m̃)[x.z,ℓ-m̃]
+    else
+        m̃ = abs(Int(m/2))
+        return cos(m̃*x.φ)*(-1)^m̃*exp((lgamma(ℓ-m̃)-lgamma(ℓ+m̃))/2)*sqrt((2ℓ-1)/(2*π))*associatedlegendre(m̃)[x.z,ℓ-m̃]
+    end
 end
 
 getindex(S::AbstractSphericalHarmonic, x::StaticVector{3}, K::BlockIndex{1}) = 
