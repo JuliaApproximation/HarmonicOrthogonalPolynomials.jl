@@ -160,18 +160,16 @@ end
 # end
 
 function getindex(S::RealSphericalHarmonic{T}, x::ZSphericalCoordinate, K::BlockIndex{1}) where T
-    # starts with m=0, then alternates between sin and cos terms, 
-    # even entries correspond to cos terms, odd entries correspond to sin terms
+    # starts with m=0, then alternates between sin and cos terms (beginning with sin).
     ℓ = Int(block(K))
     m = blockindex(K)-1
     if m==0
         return sqrt((2ℓ-1)/(4*π))*associatedlegendre(0)[x.z,ℓ]
     elseif isodd(m)
-        m̃ = abs(m)
-        return sin(m̃*x.φ)*(-1)^m̃*exp((lgamma(ℓ-m̃)-lgamma(ℓ+m̃))/2)*sqrt((2ℓ-1)/(2*π))*associatedlegendre(m̃)[x.z,ℓ-m̃]
+        return sin(m*x.φ)*(-1)^m*exp((lgamma(ℓ-m)-lgamma(ℓ+m))/2)*sqrt((2ℓ-1)/(2*π))*associatedlegendre(m)[x.z,ℓ-m]
     else
-        m̃ = abs(Int(m/2))
-        return cos(m̃*x.φ)*(-1)^m̃*exp((lgamma(ℓ-m̃)-lgamma(ℓ+m̃))/2)*sqrt((2ℓ-1)/(2*π))*associatedlegendre(m̃)[x.z,ℓ-m̃]
+        m = Int(m/2)
+        return cos(m*x.φ)*(-1)^m*exp((lgamma(ℓ-m)-lgamma(ℓ+m))/2)*sqrt((2ℓ-1)/(2*π))*associatedlegendre(m)[x.z,ℓ-m]
     end
 end
 
