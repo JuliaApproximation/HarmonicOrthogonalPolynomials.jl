@@ -55,6 +55,7 @@ end
     @test S[x,Block.(1:4)] == [S[x,Block(1)]; S[x,Block(2)]; S[x,Block(3)]; S[x,Block(4)]]
 end
 
+# these will fail until we revert to the sorting scheme which starts with m=0
 @testset "Real Evaluation" begin
     S = SphericalHarmonic()
     R = RealSphericalHarmonic()
@@ -110,6 +111,68 @@ end
 
     @testset "adaptive" begin
         S = SphericalHarmonic()
+        xyz = axes(S,1)
+        u = S * (S \ (xyz -> 1).(xyz))
+        @test u[SphericalCoordinate(0.1,0.2)] ≈ 1
+
+        f = c -> exp(-100*c.θ^2)
+        u = S * (S \ f.(xyz))
+        r = SphericalCoordinate(0.1,0.2)
+        @test u[r] ≈ f(r)
+
+        f = c -> ((x,y,z) = c; 1 + x + y + z)
+        u = S * (S \ f.(xyz))
+        p = SphericalCoordinate(0.1,0.2)
+        @test u[p] ≈ 1+sum(p)
+
+        f = c -> ((x,y,z) = c; exp(x)*cos(y*sin(z)))
+        u = S * (S \ f.(xyz))
+        @test u[p] ≈ f(p)
+    end
+end
+
+@testset "Real Expansion" begin
+    @testset "grid" begin
+        N = 2
+        S = RealSphericalHarmonic()[:,Block.(Base.OneTo(N))]
+        
+        @test size(S,2) == 4
+        g = grid(S)
+        @test eltype(g) == SphericalCoordinate{Float64}
+    
+        # compare with FastTransforms.jl/examples/sphere.jl
+        # The colatitudinal grid (mod $\pi$):
+        N = 2
+        θ = (0.5:N-0.5)/N
+        # The longitudinal grid (mod $\pi$):
+        M = 2*N-1
+        φ = (0:M-1)*2/M
+        X = [sinpi(θ)*cospi(φ) for θ in θ, φ in φ]
+        Y = [sinpi(θ)*sinpi(φ) for θ in θ, φ in φ]
+        Z = [cospi(θ) for θ in θ, φ in φ]
+        @test g ≈ SVector.(X, Y, Z)
+    end
+
+    @testset "transform" begin
+        N = 2
+        S = RealSphericalHarmonic()[:,Block.(Base.OneTo(N))]
+        xyz = axes(S,1)
+            
+        P = factorize(S)
+        @test eltype(P) == Float64
+        c = P \ (xyz -> 1).(xyz)
+        @test blocksize(c,1) == blocksize(S,2)
+        @test c == S \ (xyz -> 1).(xyz)
+        @test (S * c)[SphericalCoordinate(0.1,0.2)] ≈ 1
+
+        f = c -> ((x,y,z) = c; 1 + x + y + z)
+        u = S * (S \ f.(xyz))
+        p = SphericalCoordinate(0.1,0.2)
+        @test u[p] ≈ 1+sum(p)
+    end
+
+    @testset "adaptive" begin
+        S = RealSphericalHarmonic()
         xyz = axes(S,1)
         u = S * (S \ (xyz -> 1).(xyz))
         @test u[SphericalCoordinate(0.1,0.2)] ≈ 1
