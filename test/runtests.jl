@@ -1,5 +1,5 @@
 using SphericalHarmonics, StaticArrays, Test, InfiniteArrays, LinearAlgebra, BlockArrays, OrthogonalPolynomialsQuasi
-import SphericalHarmonics: ZSphericalCoordinate, associatedlegendre, grid, SphereTrav
+import SphericalHarmonics: ZSphericalCoordinate, associatedlegendre, grid, SphereTrav, RealSphereTrav
 
 # @testset "associated legendre" begin
 #     m = 2
@@ -55,7 +55,6 @@ end
     @test S[x,Block.(1:4)] == [S[x,Block(1)]; S[x,Block(2)]; S[x,Block(3)]; S[x,Block(4)]]
 end
 
-# these will fail until we revert to the sorting scheme which starts with m=0
 @testset "Real Evaluation" begin
     S = SphericalHarmonic()
     R = RealSphericalHarmonic()
