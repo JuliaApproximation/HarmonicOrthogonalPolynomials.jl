@@ -56,6 +56,13 @@ end
 
 getindex(A::SphereTrav, k::Int) = A[findblockindex(axes(A,1), k)]
 
+"""
+    RealSphereTrav(A::AbstractMatrix)
+
+    takes coefficients as provided by the spherical harmonics layout of FastTransforms.jl and
+    makes them accessible sorted such that in each block the m=0 entries are always in first place, 
+    followed by alternating sin and cos terms of increasing |m|.
+"""
 struct RealSphereTrav{T, AA<:AbstractMatrix{T}} <: AbstractBlockVector{T}
     matrix::AA
     function RealSphereTrav{T, AA}(matrix::AA) where {T,AA<:AbstractMatrix{T}}
@@ -191,13 +198,13 @@ function getindex(S::RealSphericalHarmonic{T}, x::ZSphericalCoordinate, K::Block
     # starts with m=0, then alternates between sin and cos terms (beginning with sin).
     ℓ = Int(block(K))
     m = blockindex(K)-1
-    if m==0
+    if iszero(m)
         return sqrt((2ℓ-1)/(4*π))*associatedlegendre(0)[x.z,ℓ]
     elseif isodd(m)
-        m = Int((m+1)/2)
+        m = (m+1)÷2
         return sin(m*x.φ)*(-1)^m*exp((lgamma(ℓ-m)-lgamma(ℓ+m))/2)*sqrt((2ℓ-1)/(2*π))*associatedlegendre(m)[x.z,ℓ-m]
     else
-        m = Int(m/2)
+        m = m÷2
         return cos(m*x.φ)*(-1)^m*exp((lgamma(ℓ-m)-lgamma(ℓ+m))/2)*sqrt((2ℓ-1)/(2*π))*associatedlegendre(m)[x.z,ℓ-m]
     end
 end

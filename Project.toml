@@ -19,10 +19,12 @@ StaticArrays = "90137ffa-7385-5640-81b9-e52037218182"
 
 [compat]
 BlockArrays = "0.14"
+ContinuumArrays = "0.4"
 DomainSets = "0.4"
 FastTransforms = "0.11"
 InfiniteArrays = "0.9"
 IntervalSets = "0.5"
+OrthogonalPolynomialsQuasi = "0.4"
 QuasiArrays = "0.3.0"
 SpecialFunctions = "0.10, 1"
 StaticArrays = "0.12.1, 1"
