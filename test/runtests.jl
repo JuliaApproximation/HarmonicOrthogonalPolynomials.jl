@@ -38,19 +38,21 @@ end
 
     @test associatedlegendre(0)[0.1,1:2] ≈ [1.0,0.1]
     @test associatedlegendre(1)[0.1,1:2] ≈ [-0.9949874371066201,-0.29849623113198603]
-    @test associatedlegendre(2)[0.1,1] ≈ 2.9699999999999998
+    @test associatedlegendre(2)[0.1,1] ≈ 2.97
 
-    @test S[x,Block(2)] ≈ 0.5sqrt(3/π)*[1/sqrt(2)*sin(θ)exp(-im*φ),cos(θ),-1/sqrt(2)*sin(θ)exp(im*φ)]
-    @test S[x,Block(3)] ≈ [0.25sqrt(15/2π)sin(θ)^2*exp(-2im*φ),0.5sqrt(15/2π)sin(θ)cos(θ)exp(-im*φ),
-                            0.25sqrt(5/π)*(3cos(θ)^2-1),-0.5sqrt(15/2π)sin(θ)cos(θ)exp(im*φ),
+    @test S[x,Block(2)] ≈ 0.5sqrt(3/π)*[1/sqrt(2)*sin(θ)exp(-im*φ),cos(θ),1/sqrt(2)*sin(θ)exp(im*φ)]
+    @test S[x,Block(3)] ≈ [0.25sqrt(15/2π)sin(θ)^2*exp(-2im*φ),
+                            0.5sqrt(15/2π)sin(θ)cos(θ)exp(-im*φ),
+                            0.25sqrt(5/π)*(3cos(θ)^2-1),
+                            0.5sqrt(15/2π)sin(θ)cos(θ)exp(im*φ),
                             0.25sqrt(15/2π)sin(θ)^2*exp(2im*φ)]
     @test S[x,Block(4)] ≈ [0.125sqrt(35/π)sin(θ)^3*exp(-3im*φ),
-        0.25sqrt(105/2π)sin(θ)^2*cos(θ)*exp(-2im*φ),
-        0.125sqrt(21/π)sin(θ)*(5cos(θ)^2-1)*exp(-im*φ),
-        0.25sqrt(7/π)*(5cos(θ)^3-3cos(θ)),
-        -0.125sqrt(21/π)sin(θ)*(5cos(θ)^2-1)*exp(im*φ),
-        0.25sqrt(105/2π)sin(θ)^2*cos(θ)*exp(2im*φ),
-        -0.125sqrt(35/π)sin(θ)^3*exp(3im*φ)]
+                          0.25sqrt(105/2π)sin(θ)^2*cos(θ)*exp(-2im*φ),
+                          0.125sqrt(21/π)sin(θ)*(5cos(θ)^2-1)*exp(-im*φ),
+                          0.25sqrt(7/π)*(5cos(θ)^3-3cos(θ)),
+                          0.125sqrt(21/π)sin(θ)*(5cos(θ)^2-1)*exp(im*φ),
+                          0.25sqrt(105/2π)sin(θ)^2*cos(θ)*exp(2im*φ),
+                          0.125sqrt(35/π)sin(θ)^3*exp(3im*φ)]
 
     @test S[x,Block.(1:4)] == [S[x,Block(1)]; S[x,Block(2)]; S[x,Block(3)]; S[x,Block(4)]]
 end
@@ -83,7 +85,7 @@ end
         xyz = axes(S,1)
             
         P = factorize(S)
-        @test eltype(P) == Float64
+        @test eltype(P) == ComplexF64
         c = P \ (xyz -> 1).(xyz)
         @test blocksize(c,1) == blocksize(S,2)
         @test c == S \ (xyz -> 1).(xyz)
