@@ -9,13 +9,87 @@ import QuasiArrays: to_quasi_index, SubQuasiArray
 import ContinuumArrays: TransformFactorization
 import OrthogonalPolynomialsQuasi: checkpoints
 import BlockBandedMatrices: BlockRange1
-import FastTransforms: Plan
+import FastTransforms: Plan, interlace
 import QuasiArrays: LazyQuasiMatrix, LazyQuasiArrayStyle
 
-export SphericalHarmonic, UnitSphere, SphericalCoordinate, Block, associatedlegendre
-
+export SphericalHarmonic, UnitSphere, SphericalCoordinate, Block, associatedlegendre, RealSphericalHarmonic
 
 include("multivariateops.jl")
+
+
+###
+# SphereTrav
+###
+
+
+"""
+    SphereTrav(A::AbstractMatrix)
+
+is an anlogue of `DiagTrav` but for coefficients stored according to 
+FastTransforms.jl spherical harmonics layout
+"""
+struct SphereTrav{T, AA<:AbstractMatrix{T}} <: AbstractBlockVector{T}
+    matrix::AA
+    function SphereTrav{T, AA}(matrix::AA) where {T,AA<:AbstractMatrix{T}}
+        n,m = size(matrix)
+        m == 2n-1 || throw(ArgumentError("size must match"))
+        new{T,AA}(matrix)
+    end
+end
+
+SphereTrav{T}(matrix::AbstractMatrix{T}) where T = SphereTrav{T,typeof(matrix)}(matrix)
+SphereTrav(matrix::AbstractMatrix{T}) where T = SphereTrav{T}(matrix)
+
+axes(A::SphereTrav) = (blockedrange(range(1; step=2, length=size(A.matrix,1))),)
+
+function getindex(A::SphereTrav, K::Block{1})
+    k = Int(K)
+    m = size(A.matrix,1)
+    st = stride(A.matrix,2)
+    # nonnegative terms
+    p = A.matrix[range(k; step=2*st-1, length=k)]
+    k == 1 && return p
+    # negative terms
+    n = A.matrix[range(k+st-1; step=2*st-1, length=k-1)]
+    [reverse!(n); p] 
+end
+
+getindex(A::SphereTrav, k::Int) = A[findblockindex(axes(A,1), k)]
+
+"""
+    RealSphereTrav(A::AbstractMatrix)
+
+    takes coefficients as provided by the spherical harmonics layout of FastTransforms.jl and
+    makes them accessible sorted such that in each block the m=0 entries are always in first place, 
+    followed by alternating sin and cos terms of increasing |m|.
+"""
+struct RealSphereTrav{T, AA<:AbstractMatrix{T}} <: AbstractBlockVector{T}
+    matrix::AA
+    function RealSphereTrav{T, AA}(matrix::AA) where {T,AA<:AbstractMatrix{T}}
+        n,m = size(matrix)
+        m == 2n-1 || throw(ArgumentError("size must match"))
+        new{T,AA}(matrix)
+    end
+end
+
+RealSphereTrav{T}(matrix::AbstractMatrix{T}) where T = RealSphereTrav{T,typeof(matrix)}(matrix)
+RealSphereTrav(matrix::AbstractMatrix{T}) where T = RealSphereTrav{T}(matrix)
+
+axes(A::RealSphereTrav) = (blockedrange(range(1; step=2, length=size(A.matrix,1))),)
+
+function getindex(A::RealSphereTrav, K::Block{1})
+    k = Int(K)
+    m = size(A.matrix,1)
+    st = stride(A.matrix,2)
+    # nonnegative terms
+    p = A.matrix[range(k; step=2*st-1, length=k)]
+    k == 1 && return p
+    # negative terms
+    n = A.matrix[range(k+st-1; step=2*st-1, length=k-1)]
+    interlace(p,n)
+end
+
+getindex(A::RealSphereTrav, k::Int) = A[findblockindex(axes(A,1), k)]
 
 
 ###
@@ -130,6 +204,7 @@ abstract type AbstractSphericalHarmonic{T} <: MultivariateOrthogonalPolynomial{3
 struct RealSphericalHarmonic{T} <: AbstractSphericalHarmonic{T} end
 struct SphericalHarmonic{T} <: AbstractSphericalHarmonic{T} end
 SphericalHarmonic() = SphericalHarmonic{ComplexF64}()
+RealSphericalHarmonic() = RealSphericalHarmonic{Float64}()
 
 axes(S::AbstractSphericalHarmonic{T}) where T = (Inclusion{SphericalCoordinate{real(T)}}(UnitSphere{real(T)}()), blockedrange(1:2:∞))
 
@@ -146,6 +221,33 @@ function getindex(S::SphericalHarmonic{T}, x::ZSphericalCoordinate, K::BlockInde
     exp((lgamma(ℓ+m̃)+lgamma(ℓ-m̃)-2lgamma(ℓ))/2)*sqrt((2ℓ-1)/(4π)) * exp(im*m*x.φ) * sin(θ/2)^m̃ * cos(θ/2)^m̃ * Jacobi{real(T)}(m̃,m̃)[x.z, ℓ-m̃]
 end
 
+# function getindex(S::RealSphericalHarmonic{T}, x::ZSphericalCoordinate, K::BlockIndex{1}) where T
+#     # sorts entries by ...-2,-1,0,1,2... scheme
+#     ℓ = Int(block(K))
+#     k = blockindex(K)
+#     m = k-ℓ
+#     m̃ = abs(m)
+#     indepm = (-1)^m̃*exp((lgamma(ℓ-m̃)-lgamma(ℓ+m̃))/2)*sqrt((2ℓ-1)/(2π))*associatedlegendre(m̃)[x.z,ℓ-m̃]
+#     m>0 && return cos(m*x.φ)*indepm
+#     m==0 && return cos(m*x.φ)/sqrt(2)*indepm
+#     m<0 && return sin(m̃*x.φ)*indepm
+# end
+
+function getindex(S::RealSphericalHarmonic{T}, x::ZSphericalCoordinate, K::BlockIndex{1}) where T
+    # starts with m=0, then alternates between sin and cos terms (beginning with sin).
+    ℓ = Int(block(K))
+    m = blockindex(K)-1
+    if iszero(m)
+        return sqrt((2ℓ-1)/(4*π))*associatedlegendre(0)[x.z,ℓ]
+    elseif isodd(m)
+        m = (m+1)÷2
+        return sin(m*x.φ)*(-1)^m*exp((lgamma(ℓ-m)-lgamma(ℓ+m))/2)*sqrt((2ℓ-1)/(2*π))*associatedlegendre(m)[x.z,ℓ-m]
+    else
+        m = m÷2
+        return cos(m*x.φ)*(-1)^m*exp((lgamma(ℓ-m)-lgamma(ℓ+m))/2)*sqrt((2ℓ-1)/(2*π))*associatedlegendre(m)[x.z,ℓ-m]
+    end
+end
+
 getindex(S::AbstractSphericalHarmonic, x::StaticVector{3}, K::BlockIndex{1}) = 
     S[ZSphericalCoordinate(x), K]
 
@@ -159,6 +261,8 @@ getindex(S::AbstractSphericalHarmonic, x::StaticVector{3}, k::Int) = S[x, findbl
 ##
 
 const FiniteSphericalHarmonic{T} = SubQuasiArray{T,2,SphericalHarmonic{T},<:Tuple{<:Inclusion,<:BlockSlice{BlockRange1{OneTo{Int}}}}}
+const FiniteRealSphericalHarmonic{T} = SubQuasiArray{T,2,RealSphericalHarmonic{T},<:Tuple{<:Inclusion,<:BlockSlice{BlockRange1{OneTo{Int}}}}}
+
 
 function grid(S::FiniteSphericalHarmonic)
     T = real(eltype(S))
@@ -171,6 +275,16 @@ function grid(S::FiniteSphericalHarmonic)
     SphericalCoordinate.(π*θ, π*φ')
 end
 
+function grid(S::FiniteRealSphericalHarmonic)
+    T = real(eltype(S))
+    N = blocksize(S,2)
+    # The colatitudinal grid (mod $\pi$):
+    θ = ((1:N) .- one(T)/2)/N
+    # The longitudinal grid (mod $\pi$):
+    M = 2*N-1
+    φ = (0:M-1)*2/convert(T, M)
+    SphericalCoordinate.(π*θ, π*φ')
+end
 
 
 struct SphericalHarmonicTransform{T} <: Plan{T}
@@ -178,11 +292,22 @@ struct SphericalHarmonicTransform{T} <: Plan{T}
     analysis::FastTransforms.FTPlan{T,2,FastTransforms.SPINSPHEREANALYSIS}
 end
 
+struct RealSphericalHarmonicTransform{T} <: Plan{T}
+    sph2fourier::FastTransforms.FTPlan{T,2,FastTransforms.SPHERE}
+    analysis::FastTransforms.FTPlan{T,2,FastTransforms.SPHEREANALYSIS}
+end
+
 SphericalHarmonicTransform{T}(N::Int) where T<:Complex = SphericalHarmonicTransform{T}(plan_spinsph2fourier(T, N, 0), plan_spinsph_analysis(T, N, 2N-1, 0))
+RealSphericalHarmonicTransform{T}(N::Int) where T<:Real = RealSphericalHarmonicTransform{T}(plan_sph2fourier(T, N), plan_sph_analysis(T, N, 2N-1))
 
 *(P::SphericalHarmonicTransform{T}, f::Matrix{T}) where T = SphereTrav(P.sph2fourier \ (P.analysis * f))
 
+*(P::RealSphericalHarmonicTransform{T}, f::Matrix{T}) where T = RealSphereTrav(P.sph2fourier \ (P.analysis * f))
+
 factorize(S::FiniteSphericalHarmonic{T}) where T =
     TransformFactorization(grid(S), SphericalHarmonicTransform{T}(blocksize(S,2)))
+factorize(S::FiniteRealSphericalHarmonic{T}) where T =
+    TransformFactorization(grid(S), RealSphericalHarmonicTransform{T}(blocksize(S,2)))
+
 
 end # module
