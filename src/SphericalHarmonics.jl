@@ -91,8 +91,6 @@ end
 
 getindex(A::RealSphereTrav, k::Int) = A[findblockindex(axes(A,1), k)]
 
-include("multivariateops.jl")
-
 
 ###
 # SphereTrav
