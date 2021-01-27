@@ -25,7 +25,7 @@ FastTransforms = "0.11"
 InfiniteArrays = "0.9"
 IntervalSets = "0.5"
 OrthogonalPolynomialsQuasi = "0.4.3"
-QuasiArrays = "0.3.0"
+QuasiArrays = "0.3.0, 0.4"
 SpecialFunctions = "0.10, 1"
 StaticArrays = "0.12.1, 1"
 
