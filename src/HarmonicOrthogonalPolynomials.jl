@@ -12,7 +12,7 @@ import BlockBandedMatrices: BlockRange1
 import FastTransforms: Plan, interlace
 import QuasiArrays: LazyQuasiMatrix, LazyQuasiArrayStyle
 
-export SphericalHarmonic, UnitSphere, SphericalCoordinate, Block, associatedlegendre, RealSphericalHarmonic
+export SphericalHarmonic, UnitSphere, SphericalCoordinate, Block, associatedlegendre, RealSphericalHarmonic, sphericalharmonicy
 
 include("multivariateops.jl")
 
@@ -212,13 +212,16 @@ associatedlegendre(m) = ((-1)^m*prod(1:2:(2m-1)))*(UltrasphericalWeight((m+1)/2)
 lgamma(n) = logabsgamma(n)[1]
 
 
-function getindex(S::SphericalHarmonic{T}, x::ZSphericalCoordinate, K::BlockIndex{1}) where T
+function sphericalharmonicy(ℓ, m, θ, φ)
+    m̃ = abs(m)
+    exp((lgamma(ℓ+m̃+1)+lgamma(ℓ-m̃+1)-2lgamma(ℓ+1))/2)*sqrt((2ℓ+1)/(4π)) * exp(im*m*φ) * sin(θ/2)^m̃ * cos(θ/2)^m̃ * jacobip(ℓ-m̃,m̃,m̃,cos(θ))
+end
+
+function getindex(S::SphericalHarmonic{T}, x::SphericalCoordinate, K::BlockIndex{1}) where T
     ℓ = Int(block(K))
     k = blockindex(K)
     m = k-ℓ
-    m̃ = abs(m)
-    θ = acos(x.z)
-    exp((lgamma(ℓ+m̃)+lgamma(ℓ-m̃)-2lgamma(ℓ))/2)*sqrt((2ℓ-1)/(4π)) * exp(im*m*x.φ) * sin(θ/2)^m̃ * cos(θ/2)^m̃ * Jacobi{real(T)}(m̃,m̃)[x.z, ℓ-m̃]
+    convert(T, sphericalharmonicy(ℓ-1, m, x.θ, x.φ))::T
 end
 
 # function getindex(S::RealSphericalHarmonic{T}, x::ZSphericalCoordinate, K::BlockIndex{1}) where T
@@ -248,9 +251,7 @@ function getindex(S::RealSphericalHarmonic{T}, x::ZSphericalCoordinate, K::Block
     end
 end
 
-getindex(S::AbstractSphericalHarmonic, x::StaticVector{3}, K::BlockIndex{1}) = 
-    S[ZSphericalCoordinate(x), K]
-
+getindex(S::AbstractSphericalHarmonic, x::StaticVector{3}, K::BlockIndex{1}) = S[SphericalCoordinate(x), K]
 getindex(S::AbstractSphericalHarmonic, x::StaticVector{3}, k::Int) = S[x, findblockindex(axes(S,2), k)]
 
 # @simplify *(Ac::QuasiAdjoint{<:Any,<:SphericalHarmonic}, B::SphericalHarmonic) = 
