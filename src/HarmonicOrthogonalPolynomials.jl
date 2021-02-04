@@ -1,5 +1,5 @@
-module SphericalHarmonics
-using FastTransforms, LinearAlgebra, OrthogonalPolynomialsQuasi, ContinuumArrays, DomainSets, 
+module HarmonicOrthogonalPolynomials
+using FastTransforms, LinearAlgebra, ClassicalOrthogonalPolynomials, ContinuumArrays, DomainSets, 
         BlockArrays, BlockBandedMatrices, InfiniteArrays, StaticArrays, QuasiArrays, Base, SpecialFunctions
 import Base: OneTo, axes, getindex, convert, to_indices, _maybetail, tail, eltype, *, ==, ^, copy
 import BlockArrays: block, blockindex, unblock, BlockSlice
@@ -7,7 +7,7 @@ import DomainSets: indomain
 import LinearAlgebra: norm, factorize
 import QuasiArrays: to_quasi_index, SubQuasiArray
 import ContinuumArrays: TransformFactorization
-import OrthogonalPolynomialsQuasi: checkpoints
+import ClassicalOrthogonalPolynomials: checkpoints
 import BlockBandedMatrices: BlockRange1
 import FastTransforms: Plan, interlace
 import QuasiArrays: LazyQuasiMatrix, LazyQuasiArrayStyle

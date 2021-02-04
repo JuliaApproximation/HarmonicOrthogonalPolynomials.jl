@@ -1,5 +1,5 @@
-using SphericalHarmonics, StaticArrays, Test, InfiniteArrays, LinearAlgebra, BlockArrays, OrthogonalPolynomialsQuasi
-import SphericalHarmonics: ZSphericalCoordinate, associatedlegendre, grid, SphereTrav, RealSphereTrav
+using HarmonicOrthogonalPolynomials, StaticArrays, Test, InfiniteArrays, LinearAlgebra, BlockArrays, ClassicalOrthogonalPolynomials
+import HarmonicOrthogonalPolynomials: ZSphericalCoordinate, associatedlegendre, grid, SphereTrav, RealSphereTrav
 
 # @testset "associated legendre" begin
 #     m = 2
