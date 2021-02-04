@@ -196,18 +196,19 @@ end
 #     m<0 && return sin(m̃*x.φ)*indepm
 # end
 
-function getindex(S::RealSphericalHarmonic{T}, x::ZSphericalCoordinate, K::BlockIndex{1}) where T
+function getindex(S::RealSphericalHarmonic{T}, x::SphericalCoordinate, K::BlockIndex{1}) where T
     # starts with m=0, then alternates between sin and cos terms (beginning with sin).
     ℓ = Int(block(K))
     m = blockindex(K)-1
+    z = cos(x.θ)
     if iszero(m)
-        return sqrt((2ℓ-1)/(4*π))*associatedlegendre(0)[x.z,ℓ]
+        return sqrt((2ℓ-1)/(4*π))*associatedlegendre(0)[z,ℓ]
     elseif isodd(m)
         m = (m+1)÷2
-        return sin(m*x.φ)*(-1)^m*exp((lgamma(ℓ-m)-lgamma(ℓ+m))/2)*sqrt((2ℓ-1)/(2*π))*associatedlegendre(m)[x.z,ℓ-m]
+        return sin(m*x.φ)*(-1)^m*exp((lgamma(ℓ-m)-lgamma(ℓ+m))/2)*sqrt((2ℓ-1)/(2*π))*associatedlegendre(m)[z,ℓ-m]
     else
         m = m÷2
-        return cos(m*x.φ)*(-1)^m*exp((lgamma(ℓ-m)-lgamma(ℓ+m))/2)*sqrt((2ℓ-1)/(2*π))*associatedlegendre(m)[x.z,ℓ-m]
+        return cos(m*x.φ)*(-1)^m*exp((lgamma(ℓ-m)-lgamma(ℓ+m))/2)*sqrt((2ℓ-1)/(2*π))*associatedlegendre(m)[z,ℓ-m]
     end
 end
 
