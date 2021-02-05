@@ -5,7 +5,7 @@ import Base: OneTo, axes, getindex, convert, to_indices, _maybetail, tail, eltyp
 import BlockArrays: block, blockindex, unblock, BlockSlice
 import DomainSets: indomain
 import LinearAlgebra: norm, factorize
-import QuasiArrays: to_quasi_index, SubQuasiArray
+import QuasiArrays: to_quasi_index, SubQuasiArray, *
 import ContinuumArrays: TransformFactorization, @simplify
 import ClassicalOrthogonalPolynomials: checkpoints
 import BlockBandedMatrices: BlockRange1
@@ -165,6 +165,7 @@ struct RealSphericalHarmonic{T} <: AbstractSphericalHarmonic{T} end
 struct SphericalHarmonic{T} <: AbstractSphericalHarmonic{T} end
 SphericalHarmonic() = SphericalHarmonic{ComplexF64}()
 RealSphericalHarmonic() = RealSphericalHarmonic{Float64}()
+copy(a::AbstractSphericalHarmonic) = a
 
 axes(S::AbstractSphericalHarmonic{T}) where T = (Inclusion{SphericalCoordinate{real(T)}}(UnitSphere{real(T)}()), blockedrange(1:2:∞))
 
@@ -183,6 +184,9 @@ function getindex(S::SphericalHarmonic{T}, x::SphericalCoordinate, K::BlockIndex
     m = k-ℓ
     convert(T, sphericalharmonicy(ℓ-1, m, x.θ, x.φ))::T
 end
+
+==(::SphericalHarmonic{T},::SphericalHarmonic{T}) where T = true
+==(::RealSphericalHarmonic{T},::RealSphericalHarmonic{T}) where T = true
 
 # function getindex(S::RealSphericalHarmonic{T}, x::ZSphericalCoordinate, K::BlockIndex{1}) where T
 #     # sorts entries by ...-2,-1,0,1,2... scheme
