@@ -12,7 +12,7 @@ import BlockBandedMatrices: BlockRange1
 import FastTransforms: Plan, interlace
 import QuasiArrays: LazyQuasiMatrix, LazyQuasiArrayStyle
 
-export SphericalHarmonic, UnitSphere, SphericalCoordinate, Block, associatedlegendre, RealSphericalHarmonic, sphericalharmonicy
+export SphericalHarmonic, UnitSphere, SphericalCoordinate, Block, associatedlegendre, RealSphericalHarmonic, sphericalharmonicy, Laplacian
 
 include("multivariateops.jl")
 
@@ -271,5 +271,6 @@ factorize(S::FiniteSphericalHarmonic{T}) where T =
 factorize(S::FiniteRealSphericalHarmonic{T}) where T =
     TransformFactorization(grid(S), RealSphericalHarmonicTransform{T}(blocksize(S,2)))
 
+include("laplace.jl")
 
 end # module
