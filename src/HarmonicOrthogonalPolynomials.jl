@@ -228,7 +228,8 @@ getindex(S::AbstractSphericalHarmonic, x::StaticVector{3}, k::Int) = S[x, findbl
 
 const FiniteSphericalHarmonic{T} = SubQuasiArray{T,2,SphericalHarmonic{T},<:Tuple{<:Inclusion,<:BlockSlice{BlockRange1{OneTo{Int}}}}}
 const FiniteRealSphericalHarmonic{T} = SubQuasiArray{T,2,RealSphericalHarmonic{T},<:Tuple{<:Inclusion,<:BlockSlice{BlockRange1{OneTo{Int}}}}}
-
+copy(a::FiniteRealSphericalHarmonic) = a
+copy(a::FiniteSphericalHarmonic) = a
 
 function grid(S::FiniteSphericalHarmonic)
     T = real(eltype(S))

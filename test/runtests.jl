@@ -1,5 +1,5 @@
 using HarmonicOrthogonalPolynomials, StaticArrays, Test, InfiniteArrays, LinearAlgebra, BlockArrays, ClassicalOrthogonalPolynomials, QuasiArrays
-import HarmonicOrthogonalPolynomials: ZSphericalCoordinate, associatedlegendre, grid, SphereTrav, RealSphereTrav
+import HarmonicOrthogonalPolynomials: ZSphericalCoordinate, associatedlegendre, grid, SphereTrav, RealSphereTrav, FiniteRealSphericalHarmonic, FiniteSphericalHarmonic
 
 # @testset "associated legendre" begin
 #     m = 2
@@ -32,6 +32,7 @@ end
 
     θ,φ = 0.1,0.2
     x = SphericalCoordinate(θ,φ)
+    @test S[:,Block.(Base.OneTo(10))] isa FiniteSphericalHarmonic
     @test S[x, Block(1)[1]] == S[x,1] == sqrt(1/(4π))
     @test view(S,x, Block(1)).indices[1] isa SphericalCoordinate
     @test S[x, Block(1)] == [sqrt(1/(4π))]
@@ -136,7 +137,8 @@ end
     @testset "grid" begin
         N = 2
         S = RealSphericalHarmonic()[:,Block.(Base.OneTo(N))]
-        
+        @test S isa FiniteRealSphericalHarmonic
+
         @test size(S,2) == 4
         g = grid(S)
         @test eltype(g) == SphericalCoordinate{Float64}
@@ -287,8 +289,48 @@ end
     @test (Δ*R*(R\f5.(xyz)))[SphericalCoordinate(0.1111,0.999)] ≈ Δf5(SphericalCoordinate(0.1111,0.999))
 end
 
-@testset "Laplacian raised to integer power" begin
+@testset "Laplacian raised to integer power, adaptive" begin
     S = SphericalHarmonic()
+    xyz = axes(S,1)
+    @test Laplacian(xyz) isa Laplacian
+    @test Laplacian(xyz)^2 isa QuasiArrays.ApplyQuasiArray
+    @test Laplacian(xyz)^3 isa QuasiArrays.ApplyQuasiArray
+    f1  = c -> cos(c.θ)^2
+    Δ_f1 = c -> -1-3*cos(2*c.θ)
+    Δ2_f1 = c -> 6+18*cos(2*c.θ)
+    Δ3_f1 = c -> -36*(1+3*cos(2*c.θ))
+    Δ = Laplacian(xyz)
+    Δ2 = Laplacian(xyz)^2
+    Δ3 = Laplacian(xyz)^3
+    t = SphericalCoordinate(0.122,0.993)
+    @test (Δ*S*(S\f1.(xyz)))[t] ≈ Δ_f1(t)
+    @test (Δ^2*S*(S\f1.(xyz)))[t] ≈ (Δ*Δ*S*(S\f1.(xyz)))[t] ≈ Δ2_f1(t)
+    @test (Δ^3*S*(S\f1.(xyz)))[t] ≈ (Δ*Δ*Δ*S*(S\f1.(xyz)))[t] ≈ Δ3_f1(t)
+end
+
+@testset "Finite basis Laplacian, complex" begin
+    S = SphericalHarmonic()[:,Block.(Base.OneTo(10))]
+    @test S isa FiniteSphericalHarmonic
+    xyz = axes(S,1)
+    @test Laplacian(xyz) isa Laplacian
+    @test Laplacian(xyz)^2 isa QuasiArrays.ApplyQuasiArray
+    @test Laplacian(xyz)^3 isa QuasiArrays.ApplyQuasiArray
+    f1  = c -> cos(c.θ)^2
+    Δ_f1 = c -> -1-3*cos(2*c.θ)
+    Δ2_f1 = c -> 6+18*cos(2*c.θ)
+    Δ3_f1 = c -> -36*(1+3*cos(2*c.θ))
+    Δ = Laplacian(xyz)
+    Δ2 = Laplacian(xyz)^2
+    Δ3 = Laplacian(xyz)^3
+    t = SphericalCoordinate(0.122,0.993)
+    @test (Δ*S*(S\f1.(xyz)))[t] ≈ Δ_f1(t)
+    @test (Δ^2*S*(S\f1.(xyz)))[t] ≈ (Δ*Δ*S*(S\f1.(xyz)))[t] ≈ Δ2_f1(t)
+    @test (Δ^3*S*(S\f1.(xyz)))[t] ≈ (Δ*Δ*Δ*S*(S\f1.(xyz)))[t] ≈ Δ3_f1(t)
+end
+
+@testset "Finite basis Laplacian, real" begin
+    S = RealSphericalHarmonic()[:,Block.(Base.OneTo(10))]
+    @test S isa FiniteRealSphericalHarmonic
     xyz = axes(S,1)
     @test Laplacian(xyz) isa Laplacian
     @test Laplacian(xyz)^2 isa QuasiArrays.ApplyQuasiArray

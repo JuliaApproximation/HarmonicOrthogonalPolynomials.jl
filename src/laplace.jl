@@ -15,3 +15,11 @@ axes(D::Laplacian) = (D.axis, D.axis)
      # Spherical harmonics are the eigenfunctions of the Laplace operator on the unit sphere
      P * Diagonal(mortar(Fill.((-(0:∞)-(0:∞).^2), 1:2:∞)))
 end
+@simplify function *(Δ::Laplacian, P::FiniteSphericalHarmonic)
+    N = isqrt(size(P,2))-1
+    P * Diagonal(mortar(Fill.((-(0:N)-(0:N).^2), 1:2:2*N+1)))
+end
+@simplify function *(Δ::Laplacian, P::FiniteRealSphericalHarmonic)
+    N = isqrt(size(P,2))-1
+    P * Diagonal(mortar(Fill.((-(0:N)-(0:N).^2), 1:2:2*N+1)))
+end
