@@ -17,21 +17,7 @@ axes(D::PartialDerivative) = (D.axis, D.axis)
 ==(a::PartialDerivative{k}, b::PartialDerivative{k}) where k = a.axis == b.axis
 copy(D::PartialDerivative{k}) where k = PartialDerivative{k}(copy(D.axis))
 
-struct Laplacian{T,D} <: LazyQuasiMatrix{T}
-    axis::Inclusion{T,D}
-end
-
-Laplacian{T}(axis::Inclusion{<:Any,D}) where {T,D} = Laplacian{T,D}(axis)
-Laplacian{T}(domain) where T = Laplacian{T}(Inclusion(domain))
-Laplacian(axis) = Laplacian{eltype(axis)}(axis)
-
-axes(D::Laplacian) = (D.axis, D.axis)
-==(a::Laplacian, b::Laplacian) = a.axis == b.axis
-copy(D::Laplacian) = Laplacian(copy(D.axis), D.k)
-
 ^(D::PartialDerivative, k::Integer) = ApplyQuasiArray(^, D, k)
-^(D::Laplacian, k::Integer) = ApplyQuasiArray(^, D, k)
-
 
 abstract type MultivariateOrthogonalPolynomial{d,T} <: Basis{T} end
 const BivariateOrthogonalPolynomial{T} = MultivariateOrthogonalPolynomial{2,T}
