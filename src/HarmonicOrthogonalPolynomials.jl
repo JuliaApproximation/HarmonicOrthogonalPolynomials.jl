@@ -6,7 +6,7 @@ import BlockArrays: block, blockindex, unblock, BlockSlice
 import DomainSets: indomain
 import LinearAlgebra: norm, factorize
 import QuasiArrays: to_quasi_index, SubQuasiArray
-import ContinuumArrays: TransformFactorization
+import ContinuumArrays: TransformFactorization, @simplify
 import ClassicalOrthogonalPolynomials: checkpoints
 import BlockBandedMatrices: BlockRange1
 import FastTransforms: Plan, interlace
