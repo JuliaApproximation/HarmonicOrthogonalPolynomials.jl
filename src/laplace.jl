@@ -8,7 +8,6 @@ Laplacian(axis) = Laplacian{eltype(axis)}(axis)
 
 axes(D::Laplacian) = (D.axis, D.axis)
 ==(a::Laplacian, b::Laplacian) = a.axis == b.axis
-copy(D::Laplacian) = Laplacian(copy(D.axis), D.k)
 
 ^(D::Laplacian, k::Integer) = ApplyQuasiArray(^, D, k)
 
