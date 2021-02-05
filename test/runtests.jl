@@ -207,6 +207,14 @@ end
     @test SΔ == RΔ
     @test axes(SΔ) isa Tuple{Inclusion{SphericalCoordinate{Float64}},Inclusion{SphericalCoordinate{Float64}}}
     @test axes(RΔ) isa Tuple{Inclusion{SphericalCoordinate{Float64}},Inclusion{SphericalCoordinate{Float64}}}
+    @test Laplacian{eltype(axes(S,1))}(axes(S,1)) == SΔ
+end
+
+@testset "test copy() for SphericalHarmonics" begin
+    S = SphericalHarmonic()
+    R = RealSphericalHarmonic()
+    @test copy(S) == S
+    @test copy(R) == R
 end
 
 @testset "Eigenvalues of spherical Laplacian" begin
@@ -282,16 +290,16 @@ end
 @testset "Laplacian raised to integer power" begin
     S = SphericalHarmonic()
     xyz = axes(S,1)
-    Δ = Laplacian(xyz)
-    Δ2 = Laplacian(xyz)^2
-    Δ3 = Laplacian(xyz)^3
-    @test Δ isa Laplacian
-    @test Δ2 isa QuasiArrays.ApplyQuasiArray
-    @test Δ3 isa QuasiArrays.ApplyQuasiArray
+    @test Laplacian(xyz) isa Laplacian
+    @test Laplacian(xyz)^2 isa QuasiArrays.ApplyQuasiArray
+    @test Laplacian(xyz)^3 isa QuasiArrays.ApplyQuasiArray
     f1  = c -> cos(c.θ)^2
     Δ_f1 = c -> -1-3*cos(2*c.θ)
     Δ2_f1 = c -> 6+18*cos(2*c.θ)
     Δ3_f1 = c -> -36*(1+3*cos(2*c.θ))
+    Δ = Laplacian(xyz)
+    Δ2 = Laplacian(xyz)^2
+    Δ3 = Laplacian(xyz)^3
     t = SphericalCoordinate(0.122,0.993)
     @test (Δ*S*(S\f1.(xyz)))[t] ≈ Δ_f1(t)
     @test (Δ^2*S*(S\f1.(xyz)))[t] ≈ (Δ*Δ*S*(S\f1.(xyz)))[t] ≈ Δ2_f1(t)
