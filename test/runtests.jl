@@ -193,3 +193,73 @@ end
         @test u[p] ≈ f(p)
     end
 end
+
+@testset "Eigenvalues of spherical Laplacian" begin
+    S = SphericalHarmonic()
+    xyz = axes(S,1)
+    Δ = Laplacian(xyz)
+    @test Δ isa Laplacian
+    # define some explicit spherical harmonics
+    Y_20 = c -> 1/4*sqrt(5/π)*(-1+3*cos(c.θ)^2)
+    Y_3m3 = c -> 1/8*exp(-3*im*c.φ)*sqrt(35/π)*sin(c.θ)^3
+    Y_41 = c -> 3/8*exp(im*c.φ)*sqrt(5/π)*cos(c.θ)*(-3+7*cos(c.θ)^2)*sin(c.θ) # note phase difference in definitions
+    # check that the above correctly represents the respective spherical harmonics
+    cfsY20 = S \ Y_20.(xyz)
+    @test cfsY20[Block(3)[3]] ≈ 1
+    cfsY3m3 = S \ Y_3m3.(xyz)
+    @test cfsY3m3[Block(4)[1]] ≈ 1
+    cfsY41 = S \ Y_41.(xyz)
+    @test cfsY41[Block(5)[6]] ≈ 1 
+    # Laplacian evaluation and correct eigenvalues
+    @test (Δ*S*cfsY20)[SphericalCoordinate(0.7,0.2)] ≈ -6*Y_20(SphericalCoordinate(0.7,0.2))
+    @test (Δ*S*cfsY3m3)[SphericalCoordinate(0.1,0.36)] ≈ -12*Y_3m3(SphericalCoordinate(0.1,0.36))
+    @test (Δ*S*cfsY41)[SphericalCoordinate(1/3,6/7)] ≈ -20*Y_41(SphericalCoordinate(1/3,6/7))
+end
+
+@testset "Laplacian of expansions in complex spherical harmonics" begin
+    S = SphericalHarmonic()
+    xyz = axes(S,1)
+    Δ = Laplacian(xyz)
+    @test Δ isa Laplacian
+    # define some functions along with the action of the Laplace operator on the unit sphere
+    f1  = c -> cos(c.θ)^2
+    Δf1 = c -> -1-3*cos(2*c.θ)
+    f2  = c -> sin(c.θ)^2-3*cos(c.θ)
+    Δf2 = c -> 1+6*cos(c.θ)+3*cos(2*c.θ)
+    f3  = c -> 3*cos(c.φ)*sin(c.θ)-cos(c.θ)^2*sin(c.θ)^2
+    Δf3 = c -> -1/2-cos(2*c.θ)-5/2*cos(4*c.θ)-6*cos(c.φ)*sin(c.θ)
+    f4  = c -> cos(c.θ)^3
+    Δf4 = c -> -3*(cos(c.θ)+cos(3*c.θ))
+    f5  = c -> 3*cos(c.φ)*sin(c.θ)-2*sin(c.θ)^2
+    Δf5 = c -> 1-9*cos(c.θ)^2-6*cos(c.φ)*sin(c.θ)+3*sin(c.θ)^2
+    # compare with HarmonicOrthogonalPolynomials Laplacian
+    @test (Δ*S*(S\f1.(xyz)))[SphericalCoordinate(2.12,1.993)]  ≈ Δf1(SphericalCoordinate(2.12,1.993))
+    @test (Δ*S*(S\f2.(xyz)))[SphericalCoordinate(3.108,1.995)] ≈ Δf2(SphericalCoordinate(3.108,1.995))
+    @test (Δ*S*(S\f3.(xyz)))[SphericalCoordinate(0.737,0.239)] ≈ Δf3(SphericalCoordinate(0.737,0.239))
+    @test (Δ*S*(S\f4.(xyz)))[SphericalCoordinate(0.162,0.162)] ≈ Δf4(SphericalCoordinate(0.162,0.162))
+    @test (Δ*S*(S\f5.(xyz)))[SphericalCoordinate(0.1111,0.999)] ≈ Δf5(SphericalCoordinate(0.1111,0.999))
+end
+
+@testset "Laplacian of expansions in real spherical harmonics" begin
+    R = RealSphericalHarmonic()
+    xyz = axes(R,1)
+    Δ = Laplacian(xyz)
+    @test Δ isa Laplacian
+    # define some functions along with the action of the Laplace operator on the unit sphere
+    f1  = c -> cos(c.θ)^2
+    Δf1 = c -> -1-3*cos(2*c.θ)
+    f2  = c -> sin(c.θ)^2-3*cos(c.θ)
+    Δf2 = c -> 1+6*cos(c.θ)+3*cos(2*c.θ)
+    f3  = c -> 3*cos(c.φ)*sin(c.θ)-cos(c.θ)^2*sin(c.θ)^2
+    Δf3 = c -> -1/2-cos(2*c.θ)-5/2*cos(4*c.θ)-6*cos(c.φ)*sin(c.θ)
+    f4  = c -> cos(c.θ)^3
+    Δf4 = c -> -3*(cos(c.θ)+cos(3*c.θ))
+    f5  = c -> 3*cos(c.φ)*sin(c.θ)-2*sin(c.θ)^2
+    Δf5 = c -> 1-9*cos(c.θ)^2-6*cos(c.φ)*sin(c.θ)+3*sin(c.θ)^2
+    # compare with HarmonicOrthogonalPolynomials Laplacian
+    @test (Δ*R*(R\f1.(xyz)))[SphericalCoordinate(2.12,1.993)]  ≈ Δf1(SphericalCoordinate(2.12,1.993))
+    @test (Δ*R*(R\f2.(xyz)))[SphericalCoordinate(3.108,1.995)] ≈ Δf2(SphericalCoordinate(3.108,1.995))
+    @test (Δ*R*(R\f3.(xyz)))[SphericalCoordinate(0.737,0.239)] ≈ Δf3(SphericalCoordinate(0.737,0.239))
+    @test (Δ*R*(R\f4.(xyz)))[SphericalCoordinate(0.162,0.162)] ≈ Δf4(SphericalCoordinate(0.162,0.162))
+    @test (Δ*R*(R\f5.(xyz)))[SphericalCoordinate(0.1111,0.999)] ≈ Δf5(SphericalCoordinate(0.1111,0.999))
+end
