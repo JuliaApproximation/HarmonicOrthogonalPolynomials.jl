@@ -1,4 +1,4 @@
-using HarmonicOrthogonalPolynomials, StaticArrays, Test, InfiniteArrays, LinearAlgebra, BlockArrays, ClassicalOrthogonalPolynomials
+using HarmonicOrthogonalPolynomials, StaticArrays, Test, InfiniteArrays, LinearAlgebra, BlockArrays, ClassicalOrthogonalPolynomials, QuasiArrays
 import HarmonicOrthogonalPolynomials: ZSphericalCoordinate, associatedlegendre, grid, SphereTrav, RealSphereTrav
 
 # @testset "associated legendre" begin
@@ -194,6 +194,21 @@ end
     end
 end
 
+@testset "Laplacian basics" begin
+    S = SphericalHarmonic()
+    R = SphericalHarmonic()
+    Sxyz = axes(S,1)
+    Rxyz = axes(R,1)
+    SΔ = Laplacian(Sxyz)
+    RΔ = Laplacian(Rxyz)
+    @test SΔ isa Laplacian
+    @test RΔ isa Laplacian
+    @test axes(SΔ) == axes(RΔ) == (axes(S,1),axes(S,1)) == (axes(R,1),axes(R,1))
+    @test SΔ == RΔ
+    @test axes(SΔ) isa Tuple{Inclusion{SphericalCoordinate{Float64}},Inclusion{SphericalCoordinate{Float64}}}
+    @test axes(RΔ) isa Tuple{Inclusion{SphericalCoordinate{Float64}},Inclusion{SphericalCoordinate{Float64}}}
+end
+
 @testset "Eigenvalues of spherical Laplacian" begin
     S = SphericalHarmonic()
     xyz = axes(S,1)
@@ -262,4 +277,23 @@ end
     @test (Δ*R*(R\f3.(xyz)))[SphericalCoordinate(0.737,0.239)] ≈ Δf3(SphericalCoordinate(0.737,0.239))
     @test (Δ*R*(R\f4.(xyz)))[SphericalCoordinate(0.162,0.162)] ≈ Δf4(SphericalCoordinate(0.162,0.162))
     @test (Δ*R*(R\f5.(xyz)))[SphericalCoordinate(0.1111,0.999)] ≈ Δf5(SphericalCoordinate(0.1111,0.999))
+end
+
+@testset "Laplacian raised to integer power" begin
+    S = SphericalHarmonic()
+    xyz = axes(S,1)
+    Δ = Laplacian(xyz)
+    Δ2 = Laplacian(xyz)^2
+    Δ3 = Laplacian(xyz)^3
+    @test Δ isa Laplacian
+    @test Δ2 isa QuasiArrays.ApplyQuasiArray
+    @test Δ3 isa QuasiArrays.ApplyQuasiArray
+    f1  = c -> cos(c.θ)^2
+    Δ_f1 = c -> -1-3*cos(2*c.θ)
+    Δ2_f1 = c -> 6+18*cos(2*c.θ)
+    Δ3_f1 = c -> -36*(1+3*cos(2*c.θ))
+    t = SphericalCoordinate(0.122,0.993)
+    @test (Δ*S*(S\f1.(xyz)))[t] ≈ Δ_f1(t)
+    @test (Δ^2*S*(S\f1.(xyz)))[t] ≈ (Δ*Δ*S*(S\f1.(xyz)))[t] ≈ Δ2_f1(t)
+    @test (Δ^3*S*(S\f1.(xyz)))[t] ≈ (Δ*Δ*Δ*S*(S\f1.(xyz)))[t] ≈ Δ3_f1(t)
 end
