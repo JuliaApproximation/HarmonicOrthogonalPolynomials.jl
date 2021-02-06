@@ -241,7 +241,6 @@ function grid(S::FiniteSphericalHarmonic)
     φ = (0:M-1)*2/convert(T, M)
     SphericalCoordinate.(π*θ, π*φ')
 end
-
 function grid(S::FiniteRealSphericalHarmonic)
     T = real(eltype(S))
     N = blocksize(S,2)
@@ -258,7 +257,6 @@ struct SphericalHarmonicTransform{T} <: Plan{T}
     sph2fourier::FastTransforms.FTPlan{T,2,FastTransforms.SPINSPHERE}
     analysis::FastTransforms.FTPlan{T,2,FastTransforms.SPINSPHEREANALYSIS}
 end
-
 struct RealSphericalHarmonicTransform{T} <: Plan{T}
     sph2fourier::FastTransforms.FTPlan{T,2,FastTransforms.SPHERE}
     analysis::FastTransforms.FTPlan{T,2,FastTransforms.SPHEREANALYSIS}
@@ -268,7 +266,6 @@ SphericalHarmonicTransform{T}(N::Int) where T<:Complex = SphericalHarmonicTransf
 RealSphericalHarmonicTransform{T}(N::Int) where T<:Real = RealSphericalHarmonicTransform{T}(plan_sph2fourier(T, N), plan_sph_analysis(T, N, 2N-1))
 
 *(P::SphericalHarmonicTransform{T}, f::Matrix{T}) where T = SphereTrav(P.sph2fourier \ (P.analysis * f))
-
 *(P::RealSphericalHarmonicTransform{T}, f::Matrix{T}) where T = RealSphereTrav(P.sph2fourier \ (P.analysis * f))
 
 factorize(S::FiniteSphericalHarmonic{T}) where T =

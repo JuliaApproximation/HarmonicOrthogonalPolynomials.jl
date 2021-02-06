@@ -8,18 +8,11 @@ Laplacian(axis) = Laplacian{eltype(axis)}(axis)
 
 axes(D::Laplacian) = (D.axis, D.axis)
 ==(a::Laplacian, b::Laplacian) = a.axis == b.axis
+copy(D::Laplacian) = Laplacian(copy(D.axis))
 
 ^(D::Laplacian, k::Integer) = ApplyQuasiMatrix(^, D, k)
 
 @simplify function *(Δ::Laplacian, P::AbstractSphericalHarmonic)
      # Spherical harmonics are the eigenfunctions of the Laplace operator on the unit sphere
      P * Diagonal(mortar(Fill.((-(0:∞)-(0:∞).^2), 1:2:∞)))
-end
-@simplify function *(Δ::Laplacian, P::FiniteSphericalHarmonic)
-    N = isqrt(size(P,2))-1
-    P * Diagonal(mortar(Fill.((-(0:N)-(0:N).^2), 1:2:2*N+1)))
-end
-@simplify function *(Δ::Laplacian, P::FiniteRealSphericalHarmonic)
-    N = isqrt(size(P,2))-1
-    P * Diagonal(mortar(Fill.((-(0:N)-(0:N).^2), 1:2:2*N+1)))
 end

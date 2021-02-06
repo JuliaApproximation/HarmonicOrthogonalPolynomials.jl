@@ -217,6 +217,12 @@ end
     R = RealSphericalHarmonic()
     @test copy(S) == S
     @test copy(R) == R
+    S = SphericalHarmonic()[:,Block.(Base.OneTo(10))]
+    R = RealSphericalHarmonic()[:,Block.(Base.OneTo(10))]
+    @test S isa FiniteSphericalHarmonic
+    @test R isa FiniteRealSphericalHarmonic
+    @test copy(S) == S
+    @test copy(R) == R
 end
 
 @testset "Eigenvalues of spherical Laplacian" begin
