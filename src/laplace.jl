@@ -3,8 +3,8 @@ struct Laplacian{T,D} <: LazyQuasiMatrix{T}
 end
 
 Laplacian{T}(axis::Inclusion{<:Any,D}) where {T,D} = Laplacian{T,D}(axis)
-Laplacian{T}(domain) where T = Laplacian{T}(Inclusion(domain))
-Laplacian(axis) = Laplacian{eltype(axis)}(axis)
+# Laplacian{T}(domain) where T = Laplacian{T}(Inclusion(domain))
+# Laplacian(axis) = Laplacian{eltype(axis)}(axis)
 
 axes(D::Laplacian) = (D.axis, D.axis)
 ==(a::Laplacian, b::Laplacian) = a.axis == b.axis
