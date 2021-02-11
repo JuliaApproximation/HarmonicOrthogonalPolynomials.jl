@@ -198,15 +198,17 @@ end
 
 @testset "Laplacian basics" begin
     S = SphericalHarmonic()
-    R = SphericalHarmonic()
+    R = RealSphericalHarmonic()
     Sxyz = axes(S,1)
     Rxyz = axes(R,1)
     SΔ = Laplacian(Sxyz)
     RΔ = Laplacian(Rxyz)
     @test SΔ isa Laplacian
     @test RΔ isa Laplacian
+    @test *(SΔ,S) isa ApplyQuasiArray
+    @test *(RΔ,R) isa ApplyQuasiArray
+    @test copy(SΔ) == SΔ == RΔ == copy(RΔ)
     @test axes(SΔ) == axes(RΔ) == (axes(S,1),axes(S,1)) == (axes(R,1),axes(R,1))
-    @test SΔ == RΔ
     @test axes(SΔ) isa Tuple{Inclusion{SphericalCoordinate{Float64}},Inclusion{SphericalCoordinate{Float64}}}
     @test axes(RΔ) isa Tuple{Inclusion{SphericalCoordinate{Float64}},Inclusion{SphericalCoordinate{Float64}}}
     @test Laplacian{eltype(axes(S,1))}(axes(S,1)) == SΔ
