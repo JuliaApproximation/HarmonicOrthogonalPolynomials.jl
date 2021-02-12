@@ -5,14 +5,14 @@ import Base: OneTo, axes, getindex, convert, to_indices, _maybetail, tail, eltyp
 import BlockArrays: block, blockindex, unblock, BlockSlice
 import DomainSets: indomain
 import LinearAlgebra: norm, factorize
-import QuasiArrays: to_quasi_index, SubQuasiArray
-import ContinuumArrays: TransformFactorization
+import QuasiArrays: to_quasi_index, SubQuasiArray, *
+import ContinuumArrays: TransformFactorization, @simplify
 import ClassicalOrthogonalPolynomials: checkpoints
 import BlockBandedMatrices: BlockRange1
 import FastTransforms: Plan, interlace
 import QuasiArrays: LazyQuasiMatrix, LazyQuasiArrayStyle
 
-export SphericalHarmonic, UnitSphere, SphericalCoordinate, Block, associatedlegendre, RealSphericalHarmonic, sphericalharmonicy
+export SphericalHarmonic, UnitSphere, SphericalCoordinate, Block, associatedlegendre, RealSphericalHarmonic, sphericalharmonicy, Laplacian
 
 include("multivariateops.jl")
 
@@ -165,6 +165,7 @@ struct RealSphericalHarmonic{T} <: AbstractSphericalHarmonic{T} end
 struct SphericalHarmonic{T} <: AbstractSphericalHarmonic{T} end
 SphericalHarmonic() = SphericalHarmonic{ComplexF64}()
 RealSphericalHarmonic() = RealSphericalHarmonic{Float64}()
+copy(a::AbstractSphericalHarmonic) = a
 
 axes(S::AbstractSphericalHarmonic{T}) where T = (Inclusion{SphericalCoordinate{real(T)}}(UnitSphere{real(T)}()), blockedrange(1:2:∞))
 
@@ -183,6 +184,9 @@ function getindex(S::SphericalHarmonic{T}, x::SphericalCoordinate, K::BlockIndex
     m = k-ℓ
     convert(T, sphericalharmonicy(ℓ-1, m, x.θ, x.φ))::T
 end
+
+==(::SphericalHarmonic{T},::SphericalHarmonic{T}) where T = true
+==(::RealSphericalHarmonic{T},::RealSphericalHarmonic{T}) where T = true
 
 # function getindex(S::RealSphericalHarmonic{T}, x::ZSphericalCoordinate, K::BlockIndex{1}) where T
 #     # sorts entries by ...-2,-1,0,1,2... scheme
@@ -224,7 +228,8 @@ getindex(S::AbstractSphericalHarmonic, x::StaticVector{3}, k::Int) = S[x, findbl
 
 const FiniteSphericalHarmonic{T} = SubQuasiArray{T,2,SphericalHarmonic{T},<:Tuple{<:Inclusion,<:BlockSlice{BlockRange1{OneTo{Int}}}}}
 const FiniteRealSphericalHarmonic{T} = SubQuasiArray{T,2,RealSphericalHarmonic{T},<:Tuple{<:Inclusion,<:BlockSlice{BlockRange1{OneTo{Int}}}}}
-
+copy(a::FiniteRealSphericalHarmonic) = a
+copy(a::FiniteSphericalHarmonic) = a
 
 function grid(S::FiniteSphericalHarmonic)
     T = real(eltype(S))
@@ -236,7 +241,6 @@ function grid(S::FiniteSphericalHarmonic)
     φ = (0:M-1)*2/convert(T, M)
     SphericalCoordinate.(π*θ, π*φ')
 end
-
 function grid(S::FiniteRealSphericalHarmonic)
     T = real(eltype(S))
     N = blocksize(S,2)
@@ -253,7 +257,6 @@ struct SphericalHarmonicTransform{T} <: Plan{T}
     sph2fourier::FastTransforms.FTPlan{T,2,FastTransforms.SPINSPHERE}
     analysis::FastTransforms.FTPlan{T,2,FastTransforms.SPINSPHEREANALYSIS}
 end
-
 struct RealSphericalHarmonicTransform{T} <: Plan{T}
     sph2fourier::FastTransforms.FTPlan{T,2,FastTransforms.SPHERE}
     analysis::FastTransforms.FTPlan{T,2,FastTransforms.SPHEREANALYSIS}
@@ -263,7 +266,6 @@ SphericalHarmonicTransform{T}(N::Int) where T<:Complex = SphericalHarmonicTransf
 RealSphericalHarmonicTransform{T}(N::Int) where T<:Real = RealSphericalHarmonicTransform{T}(plan_sph2fourier(T, N), plan_sph_analysis(T, N, 2N-1))
 
 *(P::SphericalHarmonicTransform{T}, f::Matrix{T}) where T = SphereTrav(P.sph2fourier \ (P.analysis * f))
-
 *(P::RealSphericalHarmonicTransform{T}, f::Matrix{T}) where T = RealSphereTrav(P.sph2fourier \ (P.analysis * f))
 
 factorize(S::FiniteSphericalHarmonic{T}) where T =
@@ -271,5 +273,6 @@ factorize(S::FiniteSphericalHarmonic{T}) where T =
 factorize(S::FiniteRealSphericalHarmonic{T}) where T =
     TransformFactorization(grid(S), RealSphericalHarmonicTransform{T}(blocksize(S,2)))
 
+include("laplace.jl")
 
 end # module

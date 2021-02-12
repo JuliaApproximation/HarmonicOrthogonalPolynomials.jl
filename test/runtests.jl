@@ -1,5 +1,5 @@
-using HarmonicOrthogonalPolynomials, StaticArrays, Test, InfiniteArrays, LinearAlgebra, BlockArrays, ClassicalOrthogonalPolynomials
-import HarmonicOrthogonalPolynomials: ZSphericalCoordinate, associatedlegendre, grid, SphereTrav, RealSphereTrav
+using HarmonicOrthogonalPolynomials, StaticArrays, Test, InfiniteArrays, LinearAlgebra, BlockArrays, ClassicalOrthogonalPolynomials, QuasiArrays
+import HarmonicOrthogonalPolynomials: ZSphericalCoordinate, associatedlegendre, grid, SphereTrav, RealSphereTrav, FiniteRealSphericalHarmonic, FiniteSphericalHarmonic
 
 # @testset "associated legendre" begin
 #     m = 2
@@ -32,6 +32,7 @@ end
 
     θ,φ = 0.1,0.2
     x = SphericalCoordinate(θ,φ)
+    @test S[:,Block.(Base.OneTo(10))] isa FiniteSphericalHarmonic
     @test S[x, Block(1)[1]] == S[x,1] == sqrt(1/(4π))
     @test view(S,x, Block(1)).indices[1] isa SphericalCoordinate
     @test S[x, Block(1)] == [sqrt(1/(4π))]
@@ -136,7 +137,8 @@ end
     @testset "grid" begin
         N = 2
         S = RealSphericalHarmonic()[:,Block.(Base.OneTo(N))]
-        
+        @test S isa FiniteRealSphericalHarmonic
+
         @test size(S,2) == 4
         g = grid(S)
         @test eltype(g) == SphericalCoordinate{Float64}
@@ -192,4 +194,164 @@ end
         u = S * (S \ f.(xyz))
         @test u[p] ≈ f(p)
     end
+end
+
+@testset "Laplacian basics" begin
+    S = SphericalHarmonic()
+    R = RealSphericalHarmonic()
+    Sxyz = axes(S,1)
+    Rxyz = axes(R,1)
+    SΔ = Laplacian(Sxyz)
+    RΔ = Laplacian(Rxyz)
+    @test SΔ isa Laplacian
+    @test RΔ isa Laplacian
+    @test *(SΔ,S) isa ApplyQuasiArray
+    @test *(RΔ,R) isa ApplyQuasiArray
+    @test copy(SΔ) == SΔ == RΔ == copy(RΔ)
+    @test axes(SΔ) == axes(RΔ) == (axes(S,1),axes(S,1)) == (axes(R,1),axes(R,1))
+    @test axes(SΔ) isa Tuple{Inclusion{SphericalCoordinate{Float64}},Inclusion{SphericalCoordinate{Float64}}}
+    @test axes(RΔ) isa Tuple{Inclusion{SphericalCoordinate{Float64}},Inclusion{SphericalCoordinate{Float64}}}
+    @test Laplacian{eltype(axes(S,1))}(axes(S,1)) == SΔ
+end
+
+@testset "test copy() for SphericalHarmonics" begin
+    S = SphericalHarmonic()
+    R = RealSphericalHarmonic()
+    @test copy(S) == S
+    @test copy(R) == R
+    S = SphericalHarmonic()[:,Block.(Base.OneTo(10))]
+    R = RealSphericalHarmonic()[:,Block.(Base.OneTo(10))]
+    @test S isa FiniteSphericalHarmonic
+    @test R isa FiniteRealSphericalHarmonic
+    @test copy(S) == S
+    @test copy(R) == R
+end
+
+@testset "Eigenvalues of spherical Laplacian" begin
+    S = SphericalHarmonic()
+    xyz = axes(S,1)
+    Δ = Laplacian(xyz)
+    @test Δ isa Laplacian
+    # define some explicit spherical harmonics
+    Y_20 = c -> 1/4*sqrt(5/π)*(-1+3*cos(c.θ)^2)
+    Y_3m3 = c -> 1/8*exp(-3*im*c.φ)*sqrt(35/π)*sin(c.θ)^3
+    Y_41 = c -> 3/8*exp(im*c.φ)*sqrt(5/π)*cos(c.θ)*(-3+7*cos(c.θ)^2)*sin(c.θ) # note phase difference in definitions
+    # check that the above correctly represents the respective spherical harmonics
+    cfsY20 = S \ Y_20.(xyz)
+    @test cfsY20[Block(3)[3]] ≈ 1
+    cfsY3m3 = S \ Y_3m3.(xyz)
+    @test cfsY3m3[Block(4)[1]] ≈ 1
+    cfsY41 = S \ Y_41.(xyz)
+    @test cfsY41[Block(5)[6]] ≈ 1 
+    # Laplacian evaluation and correct eigenvalues
+    @test (Δ*S*cfsY20)[SphericalCoordinate(0.7,0.2)] ≈ -6*Y_20(SphericalCoordinate(0.7,0.2))
+    @test (Δ*S*cfsY3m3)[SphericalCoordinate(0.1,0.36)] ≈ -12*Y_3m3(SphericalCoordinate(0.1,0.36))
+    @test (Δ*S*cfsY41)[SphericalCoordinate(1/3,6/7)] ≈ -20*Y_41(SphericalCoordinate(1/3,6/7))
+end
+
+@testset "Laplacian of expansions in complex spherical harmonics" begin
+    S = SphericalHarmonic()
+    xyz = axes(S,1)
+    Δ = Laplacian(xyz)
+    @test Δ isa Laplacian
+    # define some functions along with the action of the Laplace operator on the unit sphere
+    f1  = c -> cos(c.θ)^2
+    Δf1 = c -> -1-3*cos(2*c.θ)
+    f2  = c -> sin(c.θ)^2-3*cos(c.θ)
+    Δf2 = c -> 1+6*cos(c.θ)+3*cos(2*c.θ)
+    f3  = c -> 3*cos(c.φ)*sin(c.θ)-cos(c.θ)^2*sin(c.θ)^2
+    Δf3 = c -> -1/2-cos(2*c.θ)-5/2*cos(4*c.θ)-6*cos(c.φ)*sin(c.θ)
+    f4  = c -> cos(c.θ)^3
+    Δf4 = c -> -3*(cos(c.θ)+cos(3*c.θ))
+    f5  = c -> 3*cos(c.φ)*sin(c.θ)-2*sin(c.θ)^2
+    Δf5 = c -> 1-9*cos(c.θ)^2-6*cos(c.φ)*sin(c.θ)+3*sin(c.θ)^2
+    # compare with HarmonicOrthogonalPolynomials Laplacian
+    @test (Δ*S*(S\f1.(xyz)))[SphericalCoordinate(2.12,1.993)]  ≈ Δf1(SphericalCoordinate(2.12,1.993))
+    @test (Δ*S*(S\f2.(xyz)))[SphericalCoordinate(3.108,1.995)] ≈ Δf2(SphericalCoordinate(3.108,1.995))
+    @test (Δ*S*(S\f3.(xyz)))[SphericalCoordinate(0.737,0.239)] ≈ Δf3(SphericalCoordinate(0.737,0.239))
+    @test (Δ*S*(S\f4.(xyz)))[SphericalCoordinate(0.162,0.162)] ≈ Δf4(SphericalCoordinate(0.162,0.162))
+    @test (Δ*S*(S\f5.(xyz)))[SphericalCoordinate(0.1111,0.999)] ≈ Δf5(SphericalCoordinate(0.1111,0.999))
+end
+
+@testset "Laplacian of expansions in real spherical harmonics" begin
+    R = RealSphericalHarmonic()
+    xyz = axes(R,1)
+    Δ = Laplacian(xyz)
+    @test Δ isa Laplacian
+    # define some functions along with the action of the Laplace operator on the unit sphere
+    f1  = c -> cos(c.θ)^2
+    Δf1 = c -> -1-3*cos(2*c.θ)
+    f2  = c -> sin(c.θ)^2-3*cos(c.θ)
+    Δf2 = c -> 1+6*cos(c.θ)+3*cos(2*c.θ)
+    f3  = c -> 3*cos(c.φ)*sin(c.θ)-cos(c.θ)^2*sin(c.θ)^2
+    Δf3 = c -> -1/2-cos(2*c.θ)-5/2*cos(4*c.θ)-6*cos(c.φ)*sin(c.θ)
+    f4  = c -> cos(c.θ)^3
+    Δf4 = c -> -3*(cos(c.θ)+cos(3*c.θ))
+    f5  = c -> 3*cos(c.φ)*sin(c.θ)-2*sin(c.θ)^2
+    Δf5 = c -> 1-9*cos(c.θ)^2-6*cos(c.φ)*sin(c.θ)+3*sin(c.θ)^2
+    # compare with HarmonicOrthogonalPolynomials Laplacian
+    @test (Δ*R*(R\f1.(xyz)))[SphericalCoordinate(2.12,1.993)]  ≈ Δf1(SphericalCoordinate(2.12,1.993))
+    @test (Δ*R*(R\f2.(xyz)))[SphericalCoordinate(3.108,1.995)] ≈ Δf2(SphericalCoordinate(3.108,1.995))
+    @test (Δ*R*(R\f3.(xyz)))[SphericalCoordinate(0.737,0.239)] ≈ Δf3(SphericalCoordinate(0.737,0.239))
+    @test (Δ*R*(R\f4.(xyz)))[SphericalCoordinate(0.162,0.162)] ≈ Δf4(SphericalCoordinate(0.162,0.162))
+    @test (Δ*R*(R\f5.(xyz)))[SphericalCoordinate(0.1111,0.999)] ≈ Δf5(SphericalCoordinate(0.1111,0.999))
+end
+
+@testset "Laplacian raised to integer power, adaptive" begin
+    S = SphericalHarmonic()
+    xyz = axes(S,1)
+    @test Laplacian(xyz) isa Laplacian
+    @test Laplacian(xyz)^2 isa QuasiArrays.ApplyQuasiArray
+    @test Laplacian(xyz)^3 isa QuasiArrays.ApplyQuasiArray
+    f1  = c -> cos(c.θ)^2
+    Δ_f1 = c -> -1-3*cos(2*c.θ)
+    Δ2_f1 = c -> 6+18*cos(2*c.θ)
+    Δ3_f1 = c -> -36*(1+3*cos(2*c.θ))
+    Δ = Laplacian(xyz)
+    Δ2 = Laplacian(xyz)^2
+    Δ3 = Laplacian(xyz)^3
+    t = SphericalCoordinate(0.122,0.993)
+    @test (Δ*S*(S\f1.(xyz)))[t] ≈ Δ_f1(t)
+    @test (Δ^2*S*(S\f1.(xyz)))[t] ≈ (Δ*Δ*S*(S\f1.(xyz)))[t] ≈ Δ2_f1(t)
+    @test (Δ^3*S*(S\f1.(xyz)))[t] ≈ (Δ*Δ*Δ*S*(S\f1.(xyz)))[t] ≈ Δ3_f1(t)
+end
+
+@testset "Finite basis Laplacian, complex" begin
+    S = SphericalHarmonic()[:,Block.(Base.OneTo(10))]
+    @test S isa FiniteSphericalHarmonic
+    xyz = axes(S,1)
+    @test Laplacian(xyz) isa Laplacian
+    @test Laplacian(xyz)^2 isa QuasiArrays.ApplyQuasiArray
+    @test Laplacian(xyz)^3 isa QuasiArrays.ApplyQuasiArray
+    f1  = c -> cos(c.θ)^2
+    Δ_f1 = c -> -1-3*cos(2*c.θ)
+    Δ2_f1 = c -> 6+18*cos(2*c.θ)
+    Δ3_f1 = c -> -36*(1+3*cos(2*c.θ))
+    Δ = Laplacian(xyz)
+    Δ2 = Laplacian(xyz)^2
+    Δ3 = Laplacian(xyz)^3
+    t = SphericalCoordinate(0.122,0.993)
+    @test (Δ*S*(S\f1.(xyz)))[t] ≈ Δ_f1(t)
+    @test (Δ^2*S*(S\f1.(xyz)))[t] ≈ (Δ*Δ*S*(S\f1.(xyz)))[t] ≈ Δ2_f1(t)
+    @test (Δ^3*S*(S\f1.(xyz)))[t] ≈ (Δ*Δ*Δ*S*(S\f1.(xyz)))[t] ≈ Δ3_f1(t)
+end
+
+@testset "Finite basis Laplacian, real" begin
+    S = RealSphericalHarmonic()[:,Block.(Base.OneTo(10))]
+    @test S isa FiniteRealSphericalHarmonic
+    xyz = axes(S,1)
+    @test Laplacian(xyz) isa Laplacian
+    @test Laplacian(xyz)^2 isa QuasiArrays.ApplyQuasiArray
+    @test Laplacian(xyz)^3 isa QuasiArrays.ApplyQuasiArray
+    f1  = c -> cos(c.θ)^2
+    Δ_f1 = c -> -1-3*cos(2*c.θ)
+    Δ2_f1 = c -> 6+18*cos(2*c.θ)
+    Δ3_f1 = c -> -36*(1+3*cos(2*c.θ))
+    Δ = Laplacian(xyz)
+    Δ2 = Laplacian(xyz)^2
+    Δ3 = Laplacian(xyz)^3
+    t = SphericalCoordinate(0.122,0.993)
+    @test (Δ*S*(S\f1.(xyz)))[t] ≈ Δ_f1(t)
+    @test (Δ^2*S*(S\f1.(xyz)))[t] ≈ (Δ*Δ*S*(S\f1.(xyz)))[t] ≈ Δ2_f1(t)
+    @test (Δ^3*S*(S\f1.(xyz)))[t] ≈ (Δ*Δ*Δ*S*(S\f1.(xyz)))[t] ≈ Δ3_f1(t)
 end
