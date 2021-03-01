@@ -24,13 +24,12 @@ const BivariateOrthogonalPolynomial{T} = MultivariateOrthogonalPolynomial{2,T}
 const BlockOneTo = BlockRange{1,Tuple{OneTo{Int}}}
 
 
-getindex(P::MultivariateOrthogonalPolynomial{<:Any,D}, xy::SVector{D}, JR::BlockOneTo) where D = 
-    error("Overload")
-getindex(P::MultivariateOrthogonalPolynomial{D}, xy::SVector{D}, J::Block{1}) where D = P[xy, Block.(OneTo(Int(J)))][J]
-getindex(P::MultivariateOrthogonalPolynomial{D}, xy::SVector{D}, JR::BlockRange{1}) where D = P[xy, Block.(OneTo(Int(maximum(JR))))][JR]
-getindex(P::MultivariateOrthogonalPolynomial{D}, xy::SVector{D}, Jj::BlockIndex{1}) where D = P[xy, block(Jj)][blockindex(Jj)]
-getindex(P::MultivariateOrthogonalPolynomial{D}, xy::SVector{D}, j::Integer) where D = P[xy, findblockindex(axes(P,2), j)]
-getindex(P::MultivariateOrthogonalPolynomial{D}, xy::SVector{D}, jr::AbstractVector) where D = P[xy, Block.(OneTo(Int(findblock(axes(P,2), maximum(jr)))))][jr]
+getindex(P::MultivariateOrthogonalPolynomial{D}, xy::StaticVector{D}, JR::BlockOneTo) where D = error("Overload")
+getindex(P::MultivariateOrthogonalPolynomial{D}, xy::StaticVector{D}, J::Block{1}) where D = P[xy, Block.(OneTo(Int(J)))][J]
+getindex(P::MultivariateOrthogonalPolynomial{D}, xy::StaticVector{D}, JR::BlockRange{1}) where D = P[xy, Block.(OneTo(Int(maximum(JR))))][JR]
+getindex(P::MultivariateOrthogonalPolynomial{D}, xy::StaticVector{D}, Jj::BlockIndex{1}) where D = P[xy, block(Jj)][blockindex(Jj)]
+getindex(P::MultivariateOrthogonalPolynomial{D}, xy::StaticVector{D}, j::Integer) where D = P[xy, findblockindex(axes(P,2), j)]
+getindex(P::MultivariateOrthogonalPolynomial{D}, xy::StaticVector{D}, jr::AbstractVector{<:Integer}) where D = P[xy, Block.(OneTo(Int(findblock(axes(P,2), maximum(jr)))))][jr]
 
 const FirstInclusion = BroadcastQuasiVector{<:Any, typeof(first), <:Tuple{Inclusion}}
 const LastInclusion = BroadcastQuasiVector{<:Any, typeof(last), <:Tuple{Inclusion}}

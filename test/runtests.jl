@@ -16,14 +16,33 @@ import HarmonicOrthogonalPolynomials: ZSphericalCoordinate, associatedlegendre, 
     @test B == [1, 2, 6, 3, 4, 7, 9, 8, 5]
 end
 
-@testset "SphericalCoordinate" begin
-    @test SphericalCoordinate(0.2,0.1) ≈ ZSphericalCoordinate(0.1,cos(0.2))
-    @test SphericalCoordinate(0.2,0.1) == SVector(SphericalCoordinate(0.2,0.1))
-    @test ZSphericalCoordinate(0.1,0.2) == SVector(ZSphericalCoordinate(0.1,0.2))
+@testset "RadialCoordinate" begin
+    rθ = RadialCoordinate(0.1,0.2)
+    @test rθ ≈ SVector(rθ) ≈ [0.1cos(0.2),0.1sin(0.2)]
+    @test RadialCoordinate(1,0.2) isa RadialCoordinate{Float64}
+    @test RadialCoordinate(1,1) isa RadialCoordinate{Float64}
+    @test_throws BoundsError rθ[3]
+end
 
-    @test norm(SphericalCoordinate(0.1,0.2)) === norm(ZSphericalCoordinate(0.1,cos(0.2))) === 1.0
-    @test SphericalCoordinate(0.1,0.2) in UnitSphere()
+@testset "SphericalCoordinate" begin
+    θφ = SphericalCoordinate(0.2,0.1)
+    @test θφ ≈ ZSphericalCoordinate(0.1,cos(0.2))
+    @test θφ == SVector(θφ)
+    @test SphericalCoordinate(1,1) isa SphericalCoordinate{Float64}
+    @test_throws BoundsError θφ[4]
+
+    φz = ZSphericalCoordinate(0.1,cos(0.2))
+    @test φz == SVector(φz)
+
+    @test norm(θφ) === norm(φz) === 1.0
+    @test θφ in UnitSphere()
     @test ZSphericalCoordinate(0.1,cos(0.2)) in UnitSphere()
+
+    @test convert(SVector{3,Float64}, θφ) ≈ convert(SVector{3}, θφ) ≈ 
+            convert(SVector{3,Float64}, φz) ≈ convert(SVector{3}, φz) ≈ θφ
+
+    @test ZSphericalCoordinate(θφ) ≡ convert(ZSphericalCoordinate, θφ) ≡ φz
+    @test SphericalCoordinate(φz) ≡ convert(SphericalCoordinate, φz) ≡ θφ
 end
 
 @testset "Evaluation" begin
