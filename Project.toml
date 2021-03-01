@@ -20,7 +20,7 @@ StaticArrays = "90137ffa-7385-5640-81b9-e52037218182"
 [compat]
 BlockArrays = "0.14"
 BlockBandedMatrices = "0.10"
-ClassicalOrthogonalPolynomials = "0.1, 0.2"
+ClassicalOrthogonalPolynomials = "0.1, 0.2, 0.3"
 ContinuumArrays = "0.5, 0.6"
 DomainSets = "0.4"
 FastTransforms = "0.11, 0.12"
