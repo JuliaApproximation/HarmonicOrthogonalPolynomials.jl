@@ -10,7 +10,11 @@ represents the 2-vector [r*cos(θ),r*sin(θ)]
 struct RadialCoordinate{T} <: StaticVector{2,T}
     r::T
     θ::T
+    RadialCoordinate{T}(r::T, θ::T) where T = new{T}(r, θ)
 end
+
+RadialCoordinate{T}(r, θ) where T = RadialCoordinate{T}(convert(T,r), convert(T,θ))
+RadialCoordinate(r::T, θ::V) where {T<:Real,V<:Real} = RadialCoordinate{float(promote_type(T,V))}(r, θ)
 
 function RadialCoordinate(xy::StaticVector{2})
     x,y = xy
@@ -37,9 +41,11 @@ and `SphericalCoordinate(π/2,0) == SVector(1,0,0)`.
 struct SphericalCoordinate{T} <: AbstractSphericalCoordinate{T}
     θ::T
     φ::T
+    SphericalCoordinate{T}(θ::T, φ::T) where T = new{T}(θ, φ)
 end
 
-SphericalCoordinate(θ, φ) = SphericalCoordinate(promote(θ, φ)...)
+SphericalCoordinate{T}(θ, φ) where T = SphericalCoordinate{T}(convert(T,θ), convert(T,φ))
+SphericalCoordinate(θ::V, φ::T) where {T<:Real,V<:Real} = SphericalCoordinate{float(promote_type(T,V))}(θ, φ)
 SphericalCoordinate(S::SphericalCoordinate) = S
 
 """
