@@ -40,6 +40,7 @@ struct SphericalCoordinate{T} <: AbstractSphericalCoordinate{T}
 end
 
 SphericalCoordinate(θ, φ) = SphericalCoordinate(promote(θ, φ)...)
+SphericalCoordinate(S::SphericalCoordinate) = S
 
 """
    ZSphericalCoordinate(φ, z)

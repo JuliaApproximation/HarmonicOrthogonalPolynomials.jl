@@ -78,7 +78,10 @@ function getindex(S::RealSphericalHarmonic{T}, x::SphericalCoordinate, K::BlockI
 end
 
 getindex(S::AbstractSphericalHarmonic, x::StaticVector{3}, K::BlockIndex{1}) = S[SphericalCoordinate(x), K]
+getindex(S::AbstractSphericalHarmonic, x::StaticVector{3}, K::Block{1}) = S[x, axes(S,2)[K]]
+getindex(S::AbstractSphericalHarmonic, x::StaticVector{3}, KR::BlockOneTo) = mortar([S[x, K] for K in KR])
 getindex(S::AbstractSphericalHarmonic, x::StaticVector{3}, k::Int) = S[x, findblockindex(axes(S,2), k)]
+getindex(S::AbstractSphericalHarmonic, x::StaticVector{3}, kr::AbstractUnitRange{Int}) = [S[x, k] for k in kr]
 
 # @simplify *(Ac::QuasiAdjoint{<:Any,<:SphericalHarmonic}, B::SphericalHarmonic) = 
 
