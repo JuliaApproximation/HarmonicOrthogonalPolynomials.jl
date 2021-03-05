@@ -84,11 +84,15 @@ where A[N] is (N+1) x 2N, B[N] and C[N] are (N+1) x N.
 # use block expansion
 ContinuumArrays.transform_ldiv(V::SubQuasiArray{<:Any,2,<:MultivariateOrthogonalPolynomial,<:Tuple{Inclusion,BlockSlice{BlockOneTo}}}, B, _) =
     factorize(V) \ B
-function ContinuumArrays.transform_ldiv(V::SubQuasiArray{<:Any,2,<:MultivariateOrthogonalPolynomial,<:Tuple{Inclusion,AbstractVector{Int}}}, B, _)
+
+
+
+factorize(::SubQuasiArray{<:Any,2,<:MultivariateOrthogonalPolynomial,<:Tuple{<:Inclusion,<:BlockSlice{BlockRange1{OneTo{Int}}}}}) = error("Overload")
+function factorize(V::SubQuasiArray{<:Any,2,<:MultivariateOrthogonalPolynomial,<:Tuple{Inclusion,AbstractVector{Int}}})
     P = parent(V)
     _,jr = parentindices(V)
     J = findblock(axes(P,2),maximum(jr))
-    (P[:,Block.(OneTo(Int(J)))] \ B)[jr]
+    ProjectionFactorization(factorize(P[:,Block.(OneTo(Int(J)))]), jr)
 end
 
 # Make sure block structure matches. Probably should do this for all block mul
