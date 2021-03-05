@@ -23,6 +23,7 @@ end
 
 StaticArrays.SVector(rθ::RadialCoordinate) = SVector(rθ.r * cos(rθ.θ), rθ.r * sin(rθ.θ))
 getindex(R::RadialCoordinate, k::Int) = SVector(R)[k]
+norm(rθ::RadialCoordinate) = rθ.r
 
 ###
 # SphericalCoordinate
