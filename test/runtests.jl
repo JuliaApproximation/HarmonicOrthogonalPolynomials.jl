@@ -374,3 +374,30 @@ end
     @test (Δ^2*S*(S\f1.(xyz)))[t] ≈ (Δ*Δ*S*(S\f1.(xyz)))[t] ≈ Δ2_f1(t)
     @test (Δ^3*S*(S\f1.(xyz)))[t] ≈ (Δ*Δ*Δ*S*(S\f1.(xyz)))[t] ≈ Δ3_f1(t)
 end
+
+@testset "abs(Δ)^α - Basics of absolute Laplacian powers" begin
+    # Set 1
+    α = 1/3
+    S = SphericalHarmonic()
+    Sxyz = axes(S,1)
+    SΔα = AbsLaplacianPower(Sxyz,α)
+    Δ = Laplacian(Sxyz)
+    @test copy(SΔα) == SΔα
+    @test SΔα isa AbsLaplacianPower
+    @test SΔα isa QuasiArrays.LazyQuasiMatrix
+    @test axes(SΔα) == (axes(S,1),axes(S,1))
+    @test abs(Δ) == -Δ == AbsLaplacianPower(axes(Δ,1),1)
+    @test abs(Δ)^α == SΔα
+    # Set 2
+    α = 7/13
+    S = SphericalHarmonic()
+    Sxyz = axes(S,1)
+    SΔα = AbsLaplacianPower(Sxyz,α)
+    Δ = Laplacian(Sxyz)
+    @test copy(SΔα) == SΔα
+    @test SΔα isa AbsLaplacianPower
+    @test SΔα isa QuasiArrays.LazyQuasiMatrix
+    @test axes(SΔα) == (axes(S,1),axes(S,1))
+    @test abs(Δ) == -Δ == AbsLaplacianPower(axes(Δ,1),1)
+    @test abs(Δ)^α == SΔα
+end
