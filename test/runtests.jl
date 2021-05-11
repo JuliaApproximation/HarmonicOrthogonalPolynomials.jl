@@ -401,3 +401,14 @@ end
     @test abs(Δ) == -Δ == AbsLaplacianPower(axes(Δ,1),1)
     @test abs(Δ)^α == SΔα
 end
+
+@testset "sum" begin
+    S = SphericalHarmonic()
+    R = RealSphericalHarmonic()
+    @test sum(S; dims=1)[:,1:10] ≈ sum(R; dims=1)[:,1:10] ≈ [sqrt(4π) zeros(1,9)]
+
+    x = axes(S,1)
+    @test sum(S * (S \ ones(x))) ≈ sum(R * (R \ ones(x))) ≈ 4π
+    f = x -> cos(x[1]*sin(x[2]+x[3]))
+    @test sum(S * (S \ f.(x))) ≈ sum(R * (R \ f.(x))) ≈ 11.946489824270322609
+end
