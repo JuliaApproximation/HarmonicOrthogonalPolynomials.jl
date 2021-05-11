@@ -38,7 +38,7 @@ end
     @test θφ in UnitSphere()
     @test ZSphericalCoordinate(0.1,cos(0.2)) in UnitSphere()
 
-    @test convert(SVector{3,Float64}, θφ) ≈ convert(SVector{3}, θφ) ≈ 
+    @test convert(SVector{3,Float64}, θφ) ≈ convert(SVector{3}, θφ) ≈
             convert(SVector{3,Float64}, φz) ≈ convert(SVector{3}, φz) ≈ θφ
 
     @test ZSphericalCoordinate(θφ) ≡ convert(ZSphericalCoordinate, θφ) ≡ φz
@@ -94,11 +94,11 @@ end
     @testset "grid" begin
         N = 2
         S = SphericalHarmonic()[:,Block.(Base.OneTo(N))]
-        
+
         @test size(S,2) == 4
         g = grid(S)
         @test eltype(g) == SphericalCoordinate{Float64}
-    
+
         # compare with FastTransforms.jl/examples/sphere.jl
         # The colatitudinal grid (mod $\pi$):
         N = 2
@@ -116,7 +116,7 @@ end
         N = 2
         S = SphericalHarmonic()[:,Block.(Base.OneTo(N))]
         xyz = axes(S,1)
-            
+
         P = factorize(S)
         @test eltype(P) == ComplexF64
         c = P \ (xyz -> 1).(xyz)
@@ -161,7 +161,7 @@ end
         @test size(S,2) == 4
         g = grid(S)
         @test eltype(g) == SphericalCoordinate{Float64}
-    
+
         # compare with FastTransforms.jl/examples/sphere.jl
         # The colatitudinal grid (mod $\pi$):
         N = 2
@@ -179,7 +179,7 @@ end
         N = 2
         S = RealSphericalHarmonic()[:,Block.(Base.OneTo(N))]
         xyz = axes(S,1)
-            
+
         P = factorize(S)
         @test eltype(P) == Float64
         c = P \ (xyz -> 1).(xyz)
@@ -261,7 +261,7 @@ end
     cfsY3m3 = S \ Y_3m3.(xyz)
     @test cfsY3m3[Block(4)[1]] ≈ 1
     cfsY41 = S \ Y_41.(xyz)
-    @test cfsY41[Block(5)[6]] ≈ 1 
+    @test cfsY41[Block(5)[6]] ≈ 1
     # Laplacian evaluation and correct eigenvalues
     @test (Δ*S*cfsY20)[SphericalCoordinate(0.7,0.2)] ≈ -6*Y_20(SphericalCoordinate(0.7,0.2))
     @test (Δ*S*cfsY3m3)[SphericalCoordinate(0.1,0.36)] ≈ -12*Y_3m3(SphericalCoordinate(0.1,0.36))
@@ -400,4 +400,15 @@ end
     @test axes(SΔα) == (axes(S,1),axes(S,1))
     @test abs(Δ) == -Δ == AbsLaplacianPower(axes(Δ,1),1)
     @test abs(Δ)^α == SΔα
+end
+
+@testset "sum" begin
+    S = SphericalHarmonic()
+    R = RealSphericalHarmonic()
+    @test sum(S; dims=1)[:,1:10] ≈ sum(R; dims=1)[:,1:10] ≈ [sqrt(4π) zeros(1,9)]
+
+    x = axes(S,1)
+    @test sum(S * (S \ ones(x))) ≈ sum(R * (R \ ones(x))) ≈ 4π
+    f = x -> cos(x[1]*sin(x[2]+x[3]))
+    @test sum(S * (S \ f.(x))) ≈ sum(R * (R \ f.(x))) ≈ 11.946489824270322609
 end
