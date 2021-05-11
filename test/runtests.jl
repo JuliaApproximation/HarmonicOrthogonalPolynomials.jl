@@ -374,3 +374,8 @@ end
     @test (Δ^2*S*(S\f1.(xyz)))[t] ≈ (Δ*Δ*S*(S\f1.(xyz)))[t] ≈ Δ2_f1(t)
     @test (Δ^3*S*(S\f1.(xyz)))[t] ≈ (Δ*Δ*Δ*S*(S\f1.(xyz)))[t] ≈ Δ3_f1(t)
 end
+
+@testset "sum" begin
+    S = SphericalHarmonic()
+    x = axes(S,1)
+end

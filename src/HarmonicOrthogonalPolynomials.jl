@@ -7,7 +7,7 @@ import DomainSets: indomain
 import LinearAlgebra: norm, factorize
 import QuasiArrays: to_quasi_index, SubQuasiArray, *
 import ContinuumArrays: TransformFactorization, @simplify, ProjectionFactorization
-import ClassicalOrthogonalPolynomials: checkpoints
+import ClassicalOrthogonalPolynomials: checkpoints, _sum
 import BlockBandedMatrices: BlockRange1
 import FastTransforms: Plan, interlace
 import QuasiArrays: LazyQuasiMatrix, LazyQuasiArrayStyle
@@ -136,6 +136,11 @@ factorize(S::FiniteSphericalHarmonic{T}) where T =
     TransformFactorization(grid(S), SphericalHarmonicTransform{T}(blocksize(S,2)))
 factorize(S::FiniteRealSphericalHarmonic{T}) where T =
     TransformFactorization(grid(S), RealSphericalHarmonicTransform{T}(blocksize(S,2)))
+
+function _sum(A::AbstractSphericalHarmonic{T}, dims) where T
+    @assert dims == 1
+    PseudoBlockArray(Hcat(sqrt(4convert(T, π)), Zeros{T}(1,∞)), (Base.OneTo(1),axes(A,2)))
+end
 
 include("laplace.jl")
 
