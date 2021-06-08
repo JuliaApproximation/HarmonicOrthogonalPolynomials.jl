@@ -1,7 +1,7 @@
 name = "HarmonicOrthogonalPolynomials"
 uuid = "e416a80e-9640-42f3-8df8-80a93ca01ea5"
 authors = ["Sheehan Olver <solver@mac.com>"]
-version = "0.1.1"
+version = "0.1.2"
 
 [deps]
 BlockArrays = "8e7c35d0-a365-5155-bbbb-fb81a777f24e"
@@ -20,13 +20,13 @@ StaticArrays = "90137ffa-7385-5640-81b9-e52037218182"
 [compat]
 BlockArrays = "0.14, 0.15"
 BlockBandedMatrices = "0.10"
-ClassicalOrthogonalPolynomials = "0.2, 0.3"
-ContinuumArrays = "0.6, 0.7"
+ClassicalOrthogonalPolynomials = "0.2, 0.3, 0.4"
+ContinuumArrays = "0.6, 0.7, 0.8"
 DomainSets = "0.4"
 FastTransforms = "0.11, 0.12"
 InfiniteArrays = "0.10"
 IntervalSets = "0.5"
-QuasiArrays = "0.4, 0.5"
+QuasiArrays = "0.4, 0.5, 0.6"
 SpecialFunctions = "0.10, 1"
 StaticArrays = "0.12.1, 1"
 julia = "1.5"
