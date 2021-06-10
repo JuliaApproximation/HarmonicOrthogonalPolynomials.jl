@@ -28,8 +28,9 @@ copy(A::AngularMomentum) = AngularMomentum(copy(A.axis))
 end
 
 #=
-@simplify function *(A::AngularMomentum, P::RealSphericalHarmonic{T}) where T
+@simplify function *(A::AngularMomentum, P::RealSphericalHarmonic)
     # The angular momentum operator applied to real spherical harmonics negates orders
+    T = real(eltype(P))
     n = mortar(Fill.(oneto(∞),1:2:∞))
     k = mortar(Base.OneTo.(0:2:∞))
     m = T.(iseven.(k) .* (k .÷ 2))
