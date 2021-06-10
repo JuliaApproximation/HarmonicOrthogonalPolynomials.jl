@@ -1,5 +1,5 @@
 module HarmonicOrthogonalPolynomials
-using FastTransforms, LinearAlgebra, ClassicalOrthogonalPolynomials, ContinuumArrays, DomainSets, 
+using FastTransforms, LinearAlgebra, ClassicalOrthogonalPolynomials, ContinuumArrays, DomainSets,
         BlockArrays, BlockBandedMatrices, InfiniteArrays, StaticArrays, QuasiArrays, Base, SpecialFunctions
 import Base: OneTo, axes, getindex, convert, to_indices, _maybetail, tail, eltype, *, ==, ^, copy, -, abs
 import BlockArrays: block, blockindex, unblock, BlockSlice
@@ -8,11 +8,11 @@ import LinearAlgebra: norm, factorize
 import QuasiArrays: to_quasi_index, SubQuasiArray, *
 import ContinuumArrays: TransformFactorization, @simplify, ProjectionFactorization
 import ClassicalOrthogonalPolynomials: checkpoints, _sum
-import BlockBandedMatrices: BlockRange1
+import BlockBandedMatrices: BlockRange1, _BandedBlockBandedMatrix
 import FastTransforms: Plan, interlace
 import QuasiArrays: LazyQuasiMatrix, LazyQuasiArrayStyle
 
-export SphericalHarmonic, UnitSphere, SphericalCoordinate, RadialCoordinate, Block, associatedlegendre, RealSphericalHarmonic, sphericalharmonicy, Laplacian, AbsLaplacianPower, abs, -, ^
+export SphericalHarmonic, UnitSphere, SphericalCoordinate, RadialCoordinate, Block, associatedlegendre, RealSphericalHarmonic, sphericalharmonicy, Laplacian, AbsLaplacianPower, abs, -, ^, AngularMomentum
 
 include("multivariateops.jl")
 include("spheretrav.jl")
@@ -83,7 +83,7 @@ getindex(S::AbstractSphericalHarmonic, x::StaticVector{3}, KR::BlockOneTo) = mor
 getindex(S::AbstractSphericalHarmonic, x::StaticVector{3}, k::Int) = S[x, findblockindex(axes(S,2), k)]
 getindex(S::AbstractSphericalHarmonic, x::StaticVector{3}, kr::AbstractUnitRange{Int}) = [S[x, k] for k in kr]
 
-# @simplify *(Ac::QuasiAdjoint{<:Any,<:SphericalHarmonic}, B::SphericalHarmonic) = 
+# @simplify *(Ac::QuasiAdjoint{<:Any,<:SphericalHarmonic}, B::SphericalHarmonic) =
 
 
 ##
@@ -143,5 +143,6 @@ function _sum(A::AbstractSphericalHarmonic{T}, dims) where T
 end
 
 include("laplace.jl")
+include("angularmomentum.jl")
 
 end # module

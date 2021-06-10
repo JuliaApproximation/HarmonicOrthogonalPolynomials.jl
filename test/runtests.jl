@@ -412,3 +412,18 @@ end
     f = x -> cos(x[1]*sin(x[2]+x[3]))
     @test sum(S * (S \ f.(x))) ≈ sum(R * (R \ f.(x))) ≈ 11.946489824270322609
 end
+
+@testset "Angular momentum" begin
+    S = SphericalHarmonic()
+    R = RealSphericalHarmonic()
+    ∂θ = AngularMomentum(axes(S, 1))
+    @test axes(∂θ) == (axes(S, 1), axes(S, 1))
+    @test ∂θ == AngularMomentum(axes(R, 1)) == AngularMomentum(axes(S, 1).domain)
+    @test copy(∂θ) ≡ ∂θ
+    A = S \ (∂θ * S)
+    A2 = S \ (∂θ^2 * S)
+    @test diag(A[1:9, 1:9]) ≈ [0; 0; -im; im; 0; -im; im; -2im; 2im]
+    N = 20
+    @test isdiag(A[1:N, 1:N])
+    @test A[1:N, 1:N]^2 ≈ A2[1:N, 1:N]
+end
