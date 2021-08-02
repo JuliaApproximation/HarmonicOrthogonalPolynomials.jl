@@ -3,16 +3,17 @@ using FastTransforms, LinearAlgebra, ClassicalOrthogonalPolynomials, ContinuumAr
         BlockArrays, BlockBandedMatrices, InfiniteArrays, StaticArrays, QuasiArrays, Base, SpecialFunctions
 import Base: OneTo, axes, getindex, convert, to_indices, _maybetail, tail, eltype, *, ==, ^, copy, -, abs
 import BlockArrays: block, blockindex, unblock, BlockSlice
-import DomainSets: indomain
+import DomainSets: indomain, Sphere
 import LinearAlgebra: norm, factorize
 import QuasiArrays: to_quasi_index, SubQuasiArray, *
 import ContinuumArrays: TransformFactorization, @simplify, ProjectionFactorization
-import ClassicalOrthogonalPolynomials: checkpoints, _sum
+import ClassicalOrthogonalPolynomials: checkpoints, _sum, cardinality
 import BlockBandedMatrices: BlockRange1, _BandedBlockBandedMatrix
 import FastTransforms: Plan, interlace
 import QuasiArrays: LazyQuasiMatrix, LazyQuasiArrayStyle
 
 export SphericalHarmonic, UnitSphere, SphericalCoordinate, RadialCoordinate, Block, associatedlegendre, RealSphericalHarmonic, sphericalharmonicy, Laplacian, AbsLaplacianPower, abs, -, ^, AngularMomentum
+cardinality(::Sphere) = ℵ₁
 
 include("multivariateops.jl")
 include("spheretrav.jl")
