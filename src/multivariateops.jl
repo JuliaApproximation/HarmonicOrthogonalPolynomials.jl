@@ -82,7 +82,7 @@ where A[N] is (N+1) x 2N, B[N] and C[N] are (N+1) x N.
 #     forwardrecurrence!(PseudoBlockVector{promote_type(eltype(eltype(A)),eltype(eltype(B)),eltype(eltype(C)),eltype(xy))}(undef, 1:Int(N)), A, B, C, xy)
 
 # use block expansion
-ContinuumArrays.transform_ldiv(V::SubQuasiArray{<:Any,2,<:MultivariateOrthogonalPolynomial,<:Tuple{Inclusion,BlockSlice{BlockOneTo}}}, B, _) =
+ContinuumArrays.transform_ldiv(V::SubQuasiArray{<:Any,2,<:MultivariateOrthogonalPolynomial,<:Tuple{Inclusion,BlockSlice{BlockOneTo}}}, B::AbstractQuasiArray, _) =
     factorize(V) \ B
 
 
