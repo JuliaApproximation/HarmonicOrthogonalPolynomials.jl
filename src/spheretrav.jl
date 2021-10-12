@@ -38,6 +38,11 @@ end
 
 getindex(A::SphereTrav, k::Int) = A[findblockindex(axes(A,1), k)]
 
+function resize!(A::SphereTrav, K::Block{1})
+    k = Int(K)
+    SphereTrav(resize(A.matrix,k, 2k-1))
+end
+
 """
     RealSphereTrav(A::AbstractMatrix)
 
