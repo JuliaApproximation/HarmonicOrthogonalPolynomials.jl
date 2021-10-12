@@ -1,16 +1,17 @@
 module HarmonicOrthogonalPolynomials
 using FastTransforms, LinearAlgebra, ClassicalOrthogonalPolynomials, ContinuumArrays, DomainSets,
         BlockArrays, BlockBandedMatrices, InfiniteArrays, StaticArrays, QuasiArrays, Base, SpecialFunctions
-import Base: OneTo, axes, getindex, convert, to_indices, _maybetail, tail, eltype, *, ==, ^, copy, -, abs
+import Base: OneTo, oneto, axes, getindex, convert, to_indices, _maybetail, tail, eltype, *, ==, ^, copy, -, abs, resize!
 import BlockArrays: block, blockindex, unblock, BlockSlice
 import DomainSets: indomain, Sphere
 import LinearAlgebra: norm, factorize
 import QuasiArrays: to_quasi_index, SubQuasiArray, *
 import ContinuumArrays: TransformFactorization, @simplify, ProjectionFactorization
-import ClassicalOrthogonalPolynomials: checkpoints, _sum, cardinality
+import ClassicalOrthogonalPolynomials: checkpoints, _sum, cardinality, increasingtruncations
 import BlockBandedMatrices: BlockRange1, _BandedBlockBandedMatrix
 import FastTransforms: Plan, interlace
 import QuasiArrays: LazyQuasiMatrix, LazyQuasiArrayStyle
+import InfiniteArrays: InfStepRange, RangeCumsum
 
 export SphericalHarmonic, UnitSphere, SphericalCoordinate, RadialCoordinate, Block, associatedlegendre, RealSphericalHarmonic, sphericalharmonicy, Laplacian, AbsLaplacianPower, abs, -, ^, AngularMomentum
 cardinality(::Sphere) = ℵ₁
@@ -18,6 +19,8 @@ cardinality(::Sphere) = ℵ₁
 include("multivariateops.jl")
 include("spheretrav.jl")
 include("coordinates.jl")
+
+increasingtruncations(::BlockedUnitRange{<:RangeCumsum{Int,<:AbstractRange}}) = broadcast(n -> Block.(oneto(n)), 4:2:∞)
 
 
 checkpoints(::UnitSphere{T}) where T = [SphericalCoordinate{T}(0.1,0.2), SphericalCoordinate{T}(0.3,0.4)]

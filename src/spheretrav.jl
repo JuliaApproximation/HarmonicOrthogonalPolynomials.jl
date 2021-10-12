@@ -38,6 +38,8 @@ end
 
 getindex(A::SphereTrav, k::Int) = A[findblockindex(axes(A,1), k)]
 
+
+
 """
     RealSphereTrav(A::AbstractMatrix)
 
@@ -72,3 +74,10 @@ function getindex(A::RealSphereTrav, K::Block{1})
 end
 
 getindex(A::RealSphereTrav, k::Int) = A[findblockindex(axes(A,1), k)]
+
+for Typ in (:SphereTrav,:RealSphereTrav)
+    @eval function resize!(A::$Typ, K::Block{1})
+        k = Int(K)
+        $Typ(A.matrix[1:k, 1:2k-1])
+    end
+end
