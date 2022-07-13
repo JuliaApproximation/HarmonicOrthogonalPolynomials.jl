@@ -23,6 +23,7 @@ abstract type MultivariateOrthogonalPolynomial{d,T} <: Basis{T} end
 const BivariateOrthogonalPolynomial{T} = MultivariateOrthogonalPolynomial{2,T}
 const BlockOneTo = BlockRange{1,Tuple{OneTo{Int}}}
 
+copy(P::MultivariateOrthogonalPolynomial) = P
 
 getindex(P::MultivariateOrthogonalPolynomial{D}, xy::StaticVector{D}, JR::BlockOneTo) where D = error("Overload")
 getindex(P::MultivariateOrthogonalPolynomial{D}, xy::StaticVector{D}, J::Block{1}) where D = P[xy, Block.(OneTo(Int(J)))][J]

@@ -47,6 +47,7 @@ end
 
 @testset "Evaluation" begin
     S = SphericalHarmonic()
+    @test copy(S) == S
     @test eltype(axes(S,1)) == SphericalCoordinate{Float64}
 
     θ,φ = 0.1,0.2
