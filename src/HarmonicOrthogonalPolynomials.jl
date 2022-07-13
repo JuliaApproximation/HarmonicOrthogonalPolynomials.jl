@@ -30,7 +30,6 @@ struct RealSphericalHarmonic{T} <: AbstractSphericalHarmonic{T} end
 struct SphericalHarmonic{T} <: AbstractSphericalHarmonic{T} end
 SphericalHarmonic() = SphericalHarmonic{ComplexF64}()
 RealSphericalHarmonic() = RealSphericalHarmonic{Float64}()
-copy(a::AbstractSphericalHarmonic) = a
 
 axes(S::AbstractSphericalHarmonic{T}) where T = (Inclusion{SphericalCoordinate{real(T)}}(UnitSphere{real(T)}()), blockedrange(1:2:∞))
 
