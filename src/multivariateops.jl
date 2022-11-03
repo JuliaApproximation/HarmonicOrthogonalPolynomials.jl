@@ -86,15 +86,15 @@ where A[N] is (N+1) x 2N, B[N] and C[N] are (N+1) x N.
 ContinuumArrays.transform_ldiv(V::SubQuasiArray{<:Any,2,<:MultivariateOrthogonalPolynomial,<:Tuple{Inclusion,BlockSlice{BlockOneTo}}}, B::AbstractQuasiArray, _) =
     factorize(V) \ B
 
+ContinuumArrays._sub_factorize(::Tuple{Any,Any}, (kr,jr)::Tuple{Any,BlockSlice{BlockRange1{OneTo{Int}}}}, L, dims...; kws...) =
+    TransformFactorization(plan_grid_transform(parent(L), PseudoBlockArray{eltype(L)}(undef, (jr.indices, oneto.(dims)...)), 1)...)
 
-
-factorize(::SubQuasiArray{<:Any,2,<:MultivariateOrthogonalPolynomial,<:Tuple{<:Inclusion,<:BlockSlice{BlockRange1{OneTo{Int}}}}}) = error("Overload")
-function factorize(V::SubQuasiArray{<:Any,2,<:MultivariateOrthogonalPolynomial,<:Tuple{Inclusion,AbstractVector{Int}}})
-    P = parent(V)
-    _,jr = parentindices(V)
-    J = findblock(axes(P,2),maximum(jr))
-    ProjectionFactorization(factorize(P[:,Block.(OneTo(Int(J)))]), jr)
-end
+# function factorize(V::SubQuasiArray{<:Any,2,<:MultivariateOrthogonalPolynomial,<:Tuple{Inclusion,AbstractVector{Int}}})
+#     P = parent(V)
+#     _,jr = parentindices(V)
+#     J = findblock(axes(P,2),maximum(jr))
+#     ProjectionFactorization(factorize(P[:,Block.(OneTo(Int(J)))]), jr)
+# end
 
 # Make sure block structure matches. Probably should do this for all block mul
 QuasiArrays.mul(A::MultivariateOrthogonalPolynomial, b::AbstractVector) =
