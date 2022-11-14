@@ -6,7 +6,7 @@ import BlockArrays: block, blockindex, unblock, BlockSlice
 import DomainSets: indomain, Sphere
 import LinearAlgebra: norm, factorize
 import QuasiArrays: to_quasi_index, SubQuasiArray, *
-import ContinuumArrays: TransformFactorization, @simplify, ProjectionFactorization, plan_grid_transform
+import ContinuumArrays: TransformFactorization, @simplify, ProjectionFactorization, plan_grid_transform, AbstractBasisLayout, MemoryLayout
 import ClassicalOrthogonalPolynomials: checkpoints, _sum, cardinality, increasingtruncations
 import BlockBandedMatrices: BlockRange1, _BandedBlockBandedMatrix
 import FastTransforms: Plan, interlace
@@ -20,7 +20,8 @@ include("multivariateops.jl")
 include("spheretrav.jl")
 include("coordinates.jl")
 
-increasingtruncations(::BlockedUnitRange{<:RangeCumsum{Int,<:AbstractRange}}) = broadcast(n -> Block.(oneto(n)), 4:2:∞)
+# roughly try to double the computational time each iteration
+increasingtruncations(::BlockedUnitRange{<:RangeCumsum{Int,<:AbstractRange}}) = broadcast(n -> Block.(oneto((2^(n ÷ 2)) ÷ 2)), 4:2:∞)
 
 
 checkpoints(::UnitSphere{T}) where T = [SphericalCoordinate{T}(0.1,0.2), SphericalCoordinate{T}(0.3,0.4)]

@@ -21,6 +21,11 @@ copy(D::PartialDerivative{k}) where k = PartialDerivative{k}(copy(D.axis))
 
 abstract type MultivariateOrthogonalPolynomial{d,T} <: Basis{T} end
 const BivariateOrthogonalPolynomial{T} = MultivariateOrthogonalPolynomial{2,T}
+
+struct MultivariateOPLayout{d} <: AbstractBasisLayout end
+MemoryLayout(::Type{<:MultivariateOrthogonalPolynomial{d}}) where d = MultivariateOPLayout{d}()
+
+
 const BlockOneTo = BlockRange{1,Tuple{OneTo{Int}}}
 
 copy(P::MultivariateOrthogonalPolynomial) = P
