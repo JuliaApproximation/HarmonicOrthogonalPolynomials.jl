@@ -6,7 +6,7 @@ import BlockArrays: block, blockindex, unblock, BlockSlice
 import DomainSets: indomain, Sphere
 import LinearAlgebra: norm, factorize
 import QuasiArrays: to_quasi_index, SubQuasiArray, *
-import ContinuumArrays: TransformFactorization, @simplify, ProjectionFactorization, plan_grid_transform, AbstractBasisLayout, MemoryLayout
+import ContinuumArrays: TransformFactorization, @simplify, ProjectionFactorization, plan_grid_transform, grid, AbstractBasisLayout, MemoryLayout
 import ClassicalOrthogonalPolynomials: checkpoints, _sum, cardinality, increasingtruncations
 import BlockBandedMatrices: BlockRange1, _BandedBlockBandedMatrix
 import FastTransforms: Plan, interlace
@@ -136,11 +136,18 @@ RealSphericalHarmonicTransform{T}(N::Int) where T<:Real = RealSphericalHarmonicT
 *(P::SphericalHarmonicTransform{T}, f::Matrix{T}) where T = SphereTrav(P.sph2fourier \ (P.analysis * f))
 *(P::RealSphericalHarmonicTransform{T}, f::Matrix{T}) where T = RealSphereTrav(P.sph2fourier \ (P.analysis * f))
 
-factorize(S::FiniteSphericalHarmonic{T}) where T =
-    TransformFactorization(grid(S), SphericalHarmonicTransform{T}(blocksize(S,2)))
-factorize(S::FiniteRealSphericalHarmonic{T}) where T =
-    TransformFactorization(grid(S), RealSphericalHarmonicTransform{T}(blocksize(S,2)))
 
+
+function plan_grid_transform(P::SphericalHarmonic, arr::AbstractVector, dims=1:ndims(B))
+    T = promote_type(eltype(P), eltype(arr))
+    N = findblock(axes(P,2), length(arr))
+    grid(P[:,Block.(OneTo(Int(N)))]), SphericalHarmonicTransform{T}(Int(N))
+end
+function plan_grid_transform(P::RealSphericalHarmonic, arr::AbstractVector, dims=1:ndims(B))
+    T = promote_type(eltype(P), eltype(arr))
+    N = findblock(axes(P,2), length(arr))
+    grid(P[:,Block.(OneTo(Int(N)))]), RealSphericalHarmonicTransform{T}(Int(N))
+end
 function _sum(A::AbstractSphericalHarmonic{T}, dims) where T
     @assert dims == 1
     PseudoBlockArray(Hcat(sqrt(4convert(T, π)), Zeros{T}(1,∞)), (Base.OneTo(1),axes(A,2)))
