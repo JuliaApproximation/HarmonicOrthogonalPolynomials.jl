@@ -94,31 +94,26 @@ getindex(S::AbstractSphericalHarmonic, x::StaticVector{3}, kr::AbstractUnitRange
 # Expansion
 ##
 
-const FiniteSphericalHarmonic{T} = SubQuasiArray{T,2,SphericalHarmonic{T},<:Tuple{<:Inclusion,<:BlockSlice{BlockRange1{OneTo{Int}}}}}
-const FiniteRealSphericalHarmonic{T} = SubQuasiArray{T,2,RealSphericalHarmonic{T},<:Tuple{<:Inclusion,<:BlockSlice{BlockRange1{OneTo{Int}}}}}
-copy(a::FiniteRealSphericalHarmonic) = a
-copy(a::FiniteSphericalHarmonic) = a
+function grid(S::SphericalHarmonic, N::Block{1})
+    T = real(eltype(S))
+    # The colatitudinal grid (mod $\pi$):
+    θ = ((1:N) .- one(T)/2)/N
+    # The longitudinal grid (mod $\pi$):
+    M = 2*N-1
+    φ = (0:M-1)*2/convert(T, M)
+    SphericalCoordinate.(π*θ, π*φ')
+end
+function grid(S::RealSphericalHarmonic, N::Block{1})
+    T = real(eltype(S))
+    # The colatitudinal grid (mod $\pi$):
+    θ = ((1:N) .- one(T)/2)/N
+    # The longitudinal grid (mod $\pi$):
+    M = 2*N-1
+    φ = (0:M-1)*2/convert(T, M)
+    SphericalCoordinate.(π*θ, π*φ')
+end
 
-function grid(S::FiniteSphericalHarmonic)
-    T = real(eltype(S))
-    N = blocksize(S,2)
-    # The colatitudinal grid (mod $\pi$):
-    θ = ((1:N) .- one(T)/2)/N
-    # The longitudinal grid (mod $\pi$):
-    M = 2*N-1
-    φ = (0:M-1)*2/convert(T, M)
-    SphericalCoordinate.(π*θ, π*φ')
-end
-function grid(S::FiniteRealSphericalHarmonic)
-    T = real(eltype(S))
-    N = blocksize(S,2)
-    # The colatitudinal grid (mod $\pi$):
-    θ = ((1:N) .- one(T)/2)/N
-    # The longitudinal grid (mod $\pi$):
-    M = 2*N-1
-    φ = (0:M-1)*2/convert(T, M)
-    SphericalCoordinate.(π*θ, π*φ')
-end
+grid(S::AbstractSphericalHarmonic, n::Integer) = grid(S, findblock(axes(S,2), n))
 
 
 struct SphericalHarmonicTransform{T} <: Plan{T}
@@ -141,12 +136,12 @@ RealSphericalHarmonicTransform{T}(N::Int) where T<:Real = RealSphericalHarmonicT
 function plan_grid_transform(P::SphericalHarmonic, arr::AbstractVector, dims=1:ndims(B))
     T = promote_type(eltype(P), eltype(arr))
     N = findblock(axes(P,2), length(arr))
-    grid(P[:,Block.(OneTo(Int(N)))]), SphericalHarmonicTransform{T}(Int(N))
+    grid(P, N), SphericalHarmonicTransform{T}(Int(N))
 end
 function plan_grid_transform(P::RealSphericalHarmonic, arr::AbstractVector, dims=1:ndims(B))
     T = promote_type(eltype(P), eltype(arr))
     N = findblock(axes(P,2), length(arr))
-    grid(P[:,Block.(OneTo(Int(N)))]), RealSphericalHarmonicTransform{T}(Int(N))
+    grid(P, N), RealSphericalHarmonicTransform{T}(Int(N))
 end
 function _sum(A::AbstractSphericalHarmonic{T}, dims) where T
     @assert dims == 1
