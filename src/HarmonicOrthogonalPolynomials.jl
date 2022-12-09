@@ -113,8 +113,6 @@ function grid(S::RealSphericalHarmonic, N::Block{1})
     SphericalCoordinate.(π*θ, π*φ')
 end
 
-grid(S::AbstractSphericalHarmonic, n::Integer) = grid(S, findblock(axes(S,2), n))
-
 
 struct SphericalHarmonicTransform{T} <: Plan{T}
     sph2fourier::FastTransforms.FTPlan{T,2,FastTransforms.SPINSPHERE}
