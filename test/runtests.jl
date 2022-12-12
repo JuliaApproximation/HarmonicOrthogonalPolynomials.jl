@@ -97,6 +97,7 @@ end
 
         @test size(S,2) == 4
         g = grid(S)
+        @test g == plotgrid(S)
         @test eltype(g) == SphericalCoordinate{Float64}
 
         # compare with FastTransforms.jl/examples/sphere.jl
