@@ -1,5 +1,5 @@
 using HarmonicOrthogonalPolynomials, StaticArrays, Test, InfiniteArrays, LinearAlgebra, BlockArrays, ClassicalOrthogonalPolynomials, QuasiArrays
-import HarmonicOrthogonalPolynomials: ZSphericalCoordinate, associatedlegendre, grid, SphereTrav, RealSphereTrav, FiniteRealSphericalHarmonic, FiniteSphericalHarmonic
+import HarmonicOrthogonalPolynomials: ZSphericalCoordinate, associatedlegendre, grid, SphereTrav, RealSphereTrav
 
 # @testset "associated legendre" begin
 #     m = 2
@@ -52,7 +52,6 @@ end
 
     θ,φ = 0.1,0.2
     x = SphericalCoordinate(θ,φ)
-    @test S[:,Block.(Base.OneTo(10))] isa FiniteSphericalHarmonic
     @test S[x, Block(1)[1]] == S[x,1] == sqrt(1/(4π))
     @test view(S,x, Block(1)).indices[1] isa SphericalCoordinate
     @test S[x, Block(1)] == [sqrt(1/(4π))]
@@ -241,8 +240,6 @@ end
     @test copy(R) == R
     S = SphericalHarmonic()[:,Block.(Base.OneTo(10))]
     R = RealSphericalHarmonic()[:,Block.(Base.OneTo(10))]
-    @test S isa FiniteSphericalHarmonic
-    @test R isa FiniteRealSphericalHarmonic
     @test copy(S) == S
     @test copy(R) == R
 end
@@ -338,7 +335,6 @@ end
 
 @testset "Finite basis Laplacian, complex" begin
     S = SphericalHarmonic()[:,Block.(Base.OneTo(10))]
-    @test S isa FiniteSphericalHarmonic
     xyz = axes(S,1)
     @test Laplacian(xyz) isa Laplacian
     @test Laplacian(xyz)^2 isa QuasiArrays.ApplyQuasiArray
