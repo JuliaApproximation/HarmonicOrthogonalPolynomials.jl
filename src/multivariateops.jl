@@ -104,3 +104,10 @@ ContinuumArrays._sub_factorize(::Tuple{Any,Any}, (kr,jr)::Tuple{Any,BlockSlice{B
 # Make sure block structure matches. Probably should do this for all block mul
 QuasiArrays.mul(A::MultivariateOrthogonalPolynomial, b::AbstractVector) =
     ApplyQuasiArray(*, A, PseudoBlockVector(b, (axes(A,2),)))
+
+
+# plotting
+const MAX_PLOT_BLOCKS = 200
+_grid(::MultivariateOPLayout, S, n::Integer) = grid(S, findblock(axes(S,2), n))
+_plotgrid(::MultivariateOPLayout, S, n::Integer) = plotgrid(S, findblock(axes(S,2), n))
+_plotgrid(::MultivariateOPLayout, S, B::Block{1}) = grid(S, min(2B, Block(MAX_PLOT_BLOCKS)))
