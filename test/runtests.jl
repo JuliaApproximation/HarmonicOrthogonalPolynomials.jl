@@ -97,8 +97,8 @@ end
 
         @test size(S,2) == 4
         g = grid(S)
-        @test g == plotgrid(S)
         @test eltype(g) == SphericalCoordinate{Float64}
+        @test plotgrid(S) == grid(SphericalHarmonic(), Block(4))
 
         # compare with FastTransforms.jl/examples/sphere.jl
         # The colatitudinal grid (mod $\pi$):
