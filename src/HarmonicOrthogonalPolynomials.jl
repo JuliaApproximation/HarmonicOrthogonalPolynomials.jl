@@ -105,8 +105,6 @@ function grid(S::AbstractSphericalHarmonic, B::Block{1})
     SphericalCoordinate.(π*θ, π*φ')
 end
 
-plotgrid(S::AbstractSphericalHarmonic, B::Block{1}) = grid(S, B)
-
 
 struct SphericalHarmonicTransform{T} <: Plan{T}
     sph2fourier::FastTransforms.FTPlan{T,2,FastTransforms.SPINSPHERE}
