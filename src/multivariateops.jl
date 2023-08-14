@@ -108,6 +108,6 @@ QuasiArrays.mul(A::MultivariateOrthogonalPolynomial, b::AbstractVector) =
 
 # plotting
 const MAX_PLOT_BLOCKS = 200
-_grid(::MultivariateOPLayout, S, n::Integer) = grid(S, findblock(axes(S,2), n))
-_plotgrid(::MultivariateOPLayout, S, n::Integer) = plotgrid(S, findblock(axes(S,2), n))
-_plotgrid(::MultivariateOPLayout, S, B::Block{1}) = grid(S, min(2B, Block(MAX_PLOT_BLOCKS)))
+grid_layout(::MultivariateOPLayout, S, n::Integer) = grid(S, findblock(axes(S,2), n))
+plotgrid_layout(::MultivariateOPLayout, S, n::Integer) = plotgrid(S, findblock(axes(S,2), n))
+plotgrid_layout(::MultivariateOPLayout, S, B::Block{1}) = grid(S, min(2B, Block(MAX_PLOT_BLOCKS)))
