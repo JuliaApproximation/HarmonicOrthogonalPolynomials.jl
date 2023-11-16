@@ -6,7 +6,7 @@ import BlockArrays: block, blockindex, unblock, BlockSlice
 import DomainSets: indomain, Sphere
 import LinearAlgebra: norm, factorize
 import QuasiArrays: to_quasi_index, SubQuasiArray, *
-import ContinuumArrays: TransformFactorization, @simplify, ProjectionFactorization, plan_grid_transform, grid, grid_layout, plotgrid_layout, AbstractBasisLayout, MemoryLayout
+import ContinuumArrays: TransformFactorization, @simplify, ProjectionFactorization, plan_transform, grid, grid_layout, plotgrid_layout, AbstractBasisLayout, MemoryLayout
 import ClassicalOrthogonalPolynomials: checkpoints, _sum, cardinality, increasingtruncations
 import BlockBandedMatrices: BlockRange1, _BandedBlockBandedMatrix
 import FastTransforms: Plan, interlace
@@ -123,19 +123,11 @@ RealSphericalHarmonicTransform{T}(N::Int) where T<:Real = RealSphericalHarmonicT
 
 
 
-function plan_grid_transform(P::SphericalHarmonic, szs::Tuple{Block{1}}, dims=1:1)
-    T = eltype(P)
-    B = szs[1]
-    grid(P, B), SphericalHarmonicTransform{T}(Int(B))
-end
-function plan_grid_transform(P::RealSphericalHarmonic, szs::Tuple{Block{1}}, dims=1:1)
-    T = eltype(P)
-    B = szs[1]
-    grid(P, B), RealSphericalHarmonicTransform{T}(Int(B))
-end
+plan_transform(P::SphericalHarmonic{T}, (N,)::Tuple{Block{1}}, dims=1) where T = SphericalHarmonicTransform{T}(Int(N))
+plan_transform(P::RealSphericalHarmonic{T}, (N,)::Tuple{Block{1}}, dims=1) where T = RealSphericalHarmonicTransform{T}(Int(B))
 
-plan_grid_transform(P::MultivariateOrthogonalPolynomial, Bs::NTuple{N,Int}, dims=1:N) where N =
-    plan_grid_transform(P, findblock.(Ref(axes(P,2)), Bs), dims)
+grid(P::MultivariateOrthogonalPolynomial, n::Int) = grid(P, findblock(axes(P,2),n))
+plan_transform(P::MultivariateOrthogonalPolynomial, Bs::NTuple{N,Int}, dims=ntuple(identity,Val(N))) where N = plan__transform(P, findblock.(Ref(axes(P,2)), Bs), dims)
 
 function _sum(A::AbstractSphericalHarmonic{T}, dims) where T
     @assert dims == 1
