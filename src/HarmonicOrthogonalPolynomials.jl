@@ -6,7 +6,7 @@ import BlockArrays: block, blockindex, unblock, BlockSlice
 import DomainSets: indomain, Sphere
 import LinearAlgebra: norm, factorize
 import QuasiArrays: to_quasi_index, SubQuasiArray, *
-import ContinuumArrays: TransformFactorization, @simplify, ProjectionFactorization, plan_transform, grid, grid_layout, plotgrid_layout, AbstractBasisLayout, MemoryLayout
+import ContinuumArrays: TransformFactorization, @simplify, ProjectionFactorization, plan_grid_transform, plan_transform, grid, grid_layout, plotgrid_layout, AbstractBasisLayout, MemoryLayout
 import ClassicalOrthogonalPolynomials: checkpoints, _sum, cardinality, increasingtruncations
 import BlockBandedMatrices: BlockRange1, _BandedBlockBandedMatrix
 import FastTransforms: Plan, interlace
@@ -124,10 +124,10 @@ RealSphericalHarmonicTransform{T}(N::Int) where T<:Real = RealSphericalHarmonicT
 
 
 plan_transform(P::SphericalHarmonic{T}, (N,)::Tuple{Block{1}}, dims=1) where T = SphericalHarmonicTransform{T}(Int(N))
-plan_transform(P::RealSphericalHarmonic{T}, (N,)::Tuple{Block{1}}, dims=1) where T = RealSphericalHarmonicTransform{T}(Int(B))
+plan_transform(P::RealSphericalHarmonic{T}, (N,)::Tuple{Block{1}}, dims=1) where T = RealSphericalHarmonicTransform{T}(Int(N))
 
 grid(P::MultivariateOrthogonalPolynomial, n::Int) = grid(P, findblock(axes(P,2),n))
-plan_transform(P::MultivariateOrthogonalPolynomial, Bs::NTuple{N,Int}, dims=ntuple(identity,Val(N))) where N = plan__transform(P, findblock.(Ref(axes(P,2)), Bs), dims)
+plan_transform(P::MultivariateOrthogonalPolynomial, Bs::NTuple{N,Int}, dims=ntuple(identity,Val(N))) where N = plan_transform(P, findblock.(Ref(axes(P,2)), Bs), dims)
 
 function _sum(A::AbstractSphericalHarmonic{T}, dims) where T
     @assert dims == 1
