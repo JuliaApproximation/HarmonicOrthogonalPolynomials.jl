@@ -125,10 +125,15 @@ end
         @test c == S \ (xyz -> 1).(xyz)
         @test (S * c)[SphericalCoordinate(0.1,0.2)] ≈ 1
 
-        f = c -> ((x,y,z) = c; 1 + x + y + z)
-        u = S * (S \ f.(xyz))
+        f = (x,y,z) -> 1 + x + y + z
+        c = S \ splat(f).(xyz)
+        u = S * c
         p = SphericalCoordinate(0.1,0.2)
         @test u[p] ≈ 1+sum(p)
+
+        x = grid(SphericalHarmonic(), 5)
+        P = plan_transform(SphericalHarmonic(), 5)
+        @test P * splat(f).(x) ≈ [c; zeros(5)]
     end
 
     @testset "adaptive" begin
