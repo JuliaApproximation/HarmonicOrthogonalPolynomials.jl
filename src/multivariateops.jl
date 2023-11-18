@@ -92,7 +92,7 @@ ContinuumArrays.transform_ldiv(V::SubQuasiArray{<:Any,2,<:MultivariateOrthogonal
     factorize(V) \ B
 
 ContinuumArrays._sub_factorize(::Tuple{Any,Any}, (kr,jr)::Tuple{Any,BlockSlice{BlockRange1{OneTo{Int}}}}, L, dims...; kws...) =
-    TransformFactorization(plan_grid_transform(parent(L), PseudoBlockArray{eltype(L)}(undef, (jr.indices, oneto.(dims)...)), 1)...)
+    TransformFactorization(plan_grid_transform(parent(L), (last(jr.block), dims...), 1)...)
 
 # function factorize(V::SubQuasiArray{<:Any,2,<:MultivariateOrthogonalPolynomial,<:Tuple{Inclusion,AbstractVector{Int}}})
 #     P = parent(V)
