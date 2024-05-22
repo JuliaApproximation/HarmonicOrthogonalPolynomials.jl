@@ -85,7 +85,7 @@ where A[N] is (N+1) x 2N, B[N] and C[N] are (N+1) x N.
 
 
 # forwardrecurrence(N::Block{1}, A::AbstractVector, B::AbstractVector, C::AbstractVector, xy) =
-#     forwardrecurrence!(PseudoBlockVector{promote_type(eltype(eltype(A)),eltype(eltype(B)),eltype(eltype(C)),eltype(xy))}(undef, 1:Int(N)), A, B, C, xy)
+#     forwardrecurrence!(BlockedVector{promote_type(eltype(eltype(A)),eltype(eltype(B)),eltype(eltype(C)),eltype(xy))}(undef, 1:Int(N)), A, B, C, xy)
 
 # use block expansion
 ContinuumArrays.transform_ldiv(V::SubQuasiArray{<:Any,2,<:MultivariateOrthogonalPolynomial,<:Tuple{Inclusion,BlockSlice{BlockOneTo}}}, B::AbstractQuasiArray, _) =
@@ -103,7 +103,7 @@ ContinuumArrays._sub_factorize(::Tuple{Any,Any}, (kr,jr)::Tuple{Any,BlockSlice{B
 
 # Make sure block structure matches. Probably should do this for all block mul
 QuasiArrays.mul(A::MultivariateOrthogonalPolynomial, b::AbstractVector) =
-    ApplyQuasiArray(*, A, PseudoBlockVector(b, (axes(A,2),)))
+    ApplyQuasiArray(*, A, BlockedVector(b, (axes(A,2),)))
 
 
 # plotting

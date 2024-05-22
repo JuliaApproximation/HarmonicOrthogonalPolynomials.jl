@@ -21,7 +21,7 @@ include("spheretrav.jl")
 include("coordinates.jl")
 
 # roughly try to double the computational time each iteration
-increasingtruncations(::BlockedUnitRange{<:RangeCumsum{Int,<:AbstractRange}}) = broadcast(n -> Block.(oneto((2^(n ÷ 2)) ÷ 2)), 4:2:∞)
+increasingtruncations(::BlockedOneTo{Int,<:RangeCumsum{Int,<:AbstractRange}}) = broadcast(n -> Block.(oneto((2^(n ÷ 2)) ÷ 2)), 4:2:∞)
 
 
 checkpoints(::UnitSphere{T}) where T = [SphericalCoordinate{T}(0.1,0.2), SphericalCoordinate{T}(0.3,0.4)]
@@ -131,7 +131,7 @@ plan_transform(P::MultivariateOrthogonalPolynomial, Bs::NTuple{N,Int}, dims=ntup
 
 function _sum(A::AbstractSphericalHarmonic{T}, dims) where T
     @assert dims == 1
-    PseudoBlockArray(Hcat(sqrt(4convert(T, π)), Zeros{T}(1,∞)), (Base.OneTo(1),axes(A,2)))
+    BlockedArray(Hcat(sqrt(4convert(T, π)), Zeros{T}(1,∞)), (Base.OneTo(1),axes(A,2)))
 end
 
 include("laplace.jl")
