@@ -39,7 +39,7 @@ Inclusion(the 3-dimensional unit sphere)
 julia> f = 𝐱 -> ((x,y,z) = 𝐱; exp(x)*cos(y*sin(z))); # function to be approximation
 
 julia> S \ f.(𝐱) # expansion coefficients, adaptively computed
-∞-blocked ∞-element PseudoBlockArray{Complex{Float64},1,LazyArrays.CachedArray{Complex{Float64},1,Array{Complex{Float64},1},Zeros{Complex{Float64},1,Tuple{InfiniteArrays.OneToInf{Int64}}}},Tuple{BlockedOneTo{Int,ArrayLayouts.RangeCumsum{Int64,InfiniteArrays.InfStepRange{Int64,Int64}}}}}:
+∞-blocked ∞-element BlockedArray{Complex{Float64},1,LazyArrays.CachedArray{Complex{Float64},1,Array{Complex{Float64},1},Zeros{Complex{Float64},1,Tuple{InfiniteArrays.OneToInf{Int64}}}},Tuple{BlockedOneTo{Int,ArrayLayouts.RangeCumsum{Int64,InfiniteArrays.InfStepRange{Int64,Int64}}}}}:
         4.05681442931116 + 0.0im                   
  ──────────────────────────────────────────────────
       1.5777291816142751 + 3.19754060061646e-16im  

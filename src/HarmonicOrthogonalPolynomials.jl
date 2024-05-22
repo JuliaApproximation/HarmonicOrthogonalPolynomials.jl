@@ -131,7 +131,7 @@ plan_transform(P::MultivariateOrthogonalPolynomial, Bs::NTuple{N,Int}, dims=ntup
 
 function _sum(A::AbstractSphericalHarmonic{T}, dims) where T
     @assert dims == 1
-    PseudoBlockArray(Hcat(sqrt(4convert(T, π)), Zeros{T}(1,∞)), (Base.OneTo(1),axes(A,2)))
+    BlockedArray(Hcat(sqrt(4convert(T, π)), Zeros{T}(1,∞)), (Base.OneTo(1),axes(A,2)))
 end
 
 include("laplace.jl")

@@ -34,7 +34,7 @@ end
     n = mortar(Fill.(oneto(∞),1:2:∞))
     k = mortar(Base.OneTo.(0:2:∞))
     m = T.(iseven.(k) .* (k .÷ 2))
-    dat = PseudoBlockArray(Vcat(
+    dat = BlockedArray(Vcat(
         (-m)', # n, k-1
         (0 .* m)', # n, k
         (m)', # n, k+1
