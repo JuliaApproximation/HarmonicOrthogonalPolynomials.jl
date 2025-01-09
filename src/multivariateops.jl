@@ -22,7 +22,8 @@ copy(D::PartialDerivative{k}) where k = PartialDerivative{k}(copy(D.axis))
 abstract type MultivariateOrthogonalPolynomial{d,T} <: Basis{T} end
 const BivariateOrthogonalPolynomial{T} = MultivariateOrthogonalPolynomial{2,T}
 
-struct MultivariateOPLayout{d} <: AbstractBasisLayout end
+abstract type AbstractMultivariateOPLayout{d} <: AbstractBasisLayout end
+struct MultivariateOPLayout{d} <: AbstractMultivariateOPLayout{d} end
 MemoryLayout(::Type{<:MultivariateOrthogonalPolynomial{d}}) where d = MultivariateOPLayout{d}()
 
 
@@ -108,6 +109,6 @@ QuasiArrays.mul(A::MultivariateOrthogonalPolynomial, b::AbstractVector) =
 
 # plotting
 const MAX_PLOT_BLOCKS = 200
-grid_layout(::MultivariateOPLayout, S, n::Integer) = grid(S, findblock(axes(S,2), n))
-plotgrid_layout(::MultivariateOPLayout, S, n::Integer) = plotgrid(S, findblock(axes(S,2), n))
-plotgrid_layout(::MultivariateOPLayout, S, B::Block{1}) = grid(S, min(2B, Block(MAX_PLOT_BLOCKS)))
+grid_layout(::AbstractMultivariateOPLayout, S, n::Integer) = grid(S, findblock(axes(S,2), n))
+plotgrid_layout(::AbstractMultivariateOPLayout, S, n::Integer) = plotgrid(S, findblock(axes(S,2), n))
+plotgrid_layout(::AbstractMultivariateOPLayout, S, B::Block{1}) = grid(S, min(2B, Block(MAX_PLOT_BLOCKS)))
