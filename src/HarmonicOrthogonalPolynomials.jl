@@ -13,7 +13,7 @@ import FastTransforms: Plan, interlace
 import QuasiArrays: LazyQuasiMatrix, LazyQuasiArrayStyle
 import InfiniteArrays: InfStepRange, RangeCumsum
 
-export SphericalHarmonic, UnitSphere, SphericalCoordinate, RadialCoordinate, Block, associatedlegendre, RealSphericalHarmonic, sphericalharmonicy, abs, -, ^, AngularMomentum
+export SphericalHarmonic, UnitSphere, SphericalCoordinate, RadialCoordinate, Block, associatedlegendre, RealSphericalHarmonic, sphericalharmonicy, abs, -, ^, AngularMomentum, Laplacian
 cardinality(::Sphere) = ℵ₁
 
 include("multivariateops.jl")
