@@ -229,7 +229,7 @@ end
     RΔ = Laplacian(Rxyz)
     @test SΔ isa Laplacian
     @test RΔ isa Laplacian
-    @test *(SΔ,S) isa ApplyQuasiArray
+    @test SΔ*S isa ApplyQuasiArray
     @test *(RΔ,R) isa ApplyQuasiArray
     @test copy(SΔ) == SΔ == RΔ == copy(RΔ)
     @test axes(SΔ) == axes(RΔ) == (axes(S,1),axes(S,1)) == (axes(R,1),axes(R,1))
@@ -323,8 +323,8 @@ end
     S = SphericalHarmonic()
     xyz = axes(S,1)
     @test Laplacian(xyz) isa Laplacian
-    @test Laplacian(xyz)^2 isa QuasiArrays.ApplyQuasiArray
-    @test Laplacian(xyz)^3 isa QuasiArrays.ApplyQuasiArray
+    @test Laplacian(xyz)^2 isa Laplacian
+    @test Laplacian(xyz)^3 isa Laplacian
     f1  = c -> cos(c.θ)^2
     Δ_f1 = c -> -1-3*cos(2*c.θ)
     Δ2_f1 = c -> 6+18*cos(2*c.θ)
@@ -342,8 +342,8 @@ end
     S = SphericalHarmonic()[:,Block.(Base.OneTo(10))]
     xyz = axes(S,1)
     @test Laplacian(xyz) isa Laplacian
-    @test Laplacian(xyz)^2 isa QuasiArrays.ApplyQuasiArray
-    @test Laplacian(xyz)^3 isa QuasiArrays.ApplyQuasiArray
+    @test Laplacian(xyz)^2 isa Laplacian
+    @test Laplacian(xyz)^3 isa Laplacian
     f1  = c -> cos(c.θ)^2
     Δ_f1 = c -> -1-3*cos(2*c.θ)
     Δ2_f1 = c -> 6+18*cos(2*c.θ)
@@ -361,8 +361,8 @@ end
     S = RealSphericalHarmonic()[:,Block.(Base.OneTo(10))]
     xyz = axes(S,1)
     @test Laplacian(xyz) isa Laplacian
-    @test Laplacian(xyz)^2 isa QuasiArrays.ApplyQuasiArray
-    @test Laplacian(xyz)^3 isa QuasiArrays.ApplyQuasiArray
+    @test Laplacian(xyz)^2 isa Laplacian
+    @test Laplacian(xyz)^3 isa Laplacian
     f1  = c -> cos(c.θ)^2
     Δ_f1 = c -> -1-3*cos(2*c.θ)
     Δ2_f1 = c -> 6+18*cos(2*c.θ)
