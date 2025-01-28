@@ -417,9 +417,9 @@ end
 @testset "Angular momentum" begin
     S = SphericalHarmonic()
     R = RealSphericalHarmonic()
-    ∂θ = AngularMomentum(axes(S, 1))
+    ∂θ = AngularMomentum(S)
     @test axes(∂θ) == (axes(S, 1), axes(S, 1))
-    @test ∂θ == AngularMomentum(axes(R, 1)) == AngularMomentum(axes(S, 1).domain)
+    @test ∂θ == AngularMomentum(R) == AngularMomentum(axes(S, 1).domain)
     @test copy(∂θ) ≡ ∂θ
     A = S \ (∂θ * S)
     A2 = S \ (∂θ^2 * S)

@@ -5,8 +5,10 @@ import Base: OneTo, oneto, axes, getindex, convert, to_indices, tail, eltype, *,
 import BlockArrays: block, blockindex, unblock, BlockSlice
 import DomainSets: indomain, Sphere
 import LinearAlgebra: norm, factorize
-import QuasiArrays: to_quasi_index, SubQuasiArray, *
-import ContinuumArrays: TransformFactorization, @simplify, ProjectionFactorization, plan_grid_transform, plan_transform, grid, grid_layout, plotgrid_layout, AbstractBasisLayout, MemoryLayout, abslaplacian, laplacian
+import QuasiArrays: to_quasi_index, SubQuasiArray, *, AbstractQuasiVecOrMat
+import ContinuumArrays: TransformFactorization, @simplify, ProjectionFactorization, plan_grid_transform, plan_transform, grid, grid_layout, plotgrid_layout,
+                        AbstractBasisLayout, MemoryLayout, abslaplacian, laplacian, AbstractDifferentialQuasiMatrix, operatorcall, similaroperator, SubBasisLayout,
+                        ApplyLayout, arguments, ExpansionLayout
 import ClassicalOrthogonalPolynomials: checkpoints, _sum, cardinality, increasingtruncations
 import BlockBandedMatrices: BlockRange1, _BandedBlockBandedMatrix
 import FastTransforms: Plan, interlace
