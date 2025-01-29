@@ -428,3 +428,10 @@ end
     @test isdiag(A[1:N, 1:N])
     @test A[1:N, 1:N]^2 ≈ A2[1:N, 1:N]
 end
+
+@testset "Issue #88" begin
+    S = SphericalHarmonic()
+    v = S[SphericalCoordinate(0.1,0.2), 1:2:end]
+    @test length(v) == ∞
+    @test v[1:5] == S[SphericalCoordinate(0.1,0.2), 1:2:10]
+end
