@@ -5,15 +5,17 @@ import Base: OneTo, oneto, axes, getindex, convert, to_indices, tail, eltype, *,
 import BlockArrays: block, blockindex, unblock, BlockSlice
 import DomainSets: indomain, Sphere
 import LinearAlgebra: norm, factorize
-import QuasiArrays: to_quasi_index, SubQuasiArray, *
-import ContinuumArrays: TransformFactorization, @simplify, ProjectionFactorization, plan_grid_transform, plan_transform, grid, grid_layout, plotgrid_layout, AbstractBasisLayout, MemoryLayout
+import QuasiArrays: to_quasi_index, SubQuasiArray, *, AbstractQuasiVecOrMat
+import ContinuumArrays: TransformFactorization, @simplify, ProjectionFactorization, plan_grid_transform, plan_transform, grid, grid_layout, plotgrid_layout,
+                        AbstractBasisLayout, MemoryLayout, abslaplacian, laplacian, AbstractDifferentialQuasiMatrix, operatorcall, similaroperator, SubBasisLayout,
+                        ApplyLayout, arguments, ExpansionLayout
 import ClassicalOrthogonalPolynomials: checkpoints, _sum, cardinality, increasingtruncations
 import BlockBandedMatrices: BlockRange1, _BandedBlockBandedMatrix
 import FastTransforms: Plan, interlace
 import QuasiArrays: LazyQuasiMatrix, LazyQuasiArrayStyle
 import InfiniteArrays: InfStepRange, RangeCumsum
 
-export SphericalHarmonic, UnitSphere, SphericalCoordinate, RadialCoordinate, Block, associatedlegendre, RealSphericalHarmonic, sphericalharmonicy, Laplacian, AbsLaplacianPower, abs, -, ^, AngularMomentum
+export SphericalHarmonic, UnitSphere, SphericalCoordinate, RadialCoordinate, Block, associatedlegendre, RealSphericalHarmonic, sphericalharmonicy, abs, -, ^, AngularMomentum, Laplacian, AbsLaplacian
 cardinality(::Sphere) = ℵ₁
 
 include("multivariateops.jl")

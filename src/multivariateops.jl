@@ -1,24 +1,3 @@
-
-#########
-# PartialDerivative{k}
-# takes a partial derivative in the k-th index.
-#########
-
-
-struct PartialDerivative{k,T,Ax<:Inclusion} <: LazyQuasiMatrix{T}
-    axis::Ax
-end
-
-PartialDerivative{k,T}(axis::Inclusion) where {k,T} = PartialDerivative{k,T,typeof(axis)}(axis)
-PartialDerivative{k,T}(domain) where {k,T} = PartialDerivative{k,T}(Inclusion(domain))
-PartialDerivative{k}(axis) where k = PartialDerivative{k,eltype(eltype(axis))}(axis)
-
-axes(D::PartialDerivative) = (D.axis, D.axis)
-==(a::PartialDerivative{k}, b::PartialDerivative{k}) where k = a.axis == b.axis
-copy(D::PartialDerivative{k}) where k = PartialDerivative{k}(copy(D.axis))
-
-^(D::PartialDerivative, k::Integer) = ApplyQuasiArray(^, D, k)
-
 abstract type MultivariateOrthogonalPolynomial{d,T} <: Basis{T} end
 const BivariateOrthogonalPolynomial{T} = MultivariateOrthogonalPolynomial{2,T}
 

@@ -229,7 +229,7 @@ end
     RΔ = Laplacian(Rxyz)
     @test SΔ isa Laplacian
     @test RΔ isa Laplacian
-    @test *(SΔ,S) isa ApplyQuasiArray
+    @test SΔ*S isa ApplyQuasiArray
     @test *(RΔ,R) isa ApplyQuasiArray
     @test copy(SΔ) == SΔ == RΔ == copy(RΔ)
     @test axes(SΔ) == axes(RΔ) == (axes(S,1),axes(S,1)) == (axes(R,1),axes(R,1))
@@ -323,8 +323,8 @@ end
     S = SphericalHarmonic()
     xyz = axes(S,1)
     @test Laplacian(xyz) isa Laplacian
-    @test Laplacian(xyz)^2 isa QuasiArrays.ApplyQuasiArray
-    @test Laplacian(xyz)^3 isa QuasiArrays.ApplyQuasiArray
+    @test Laplacian(xyz)^2 isa Laplacian
+    @test Laplacian(xyz)^3 isa Laplacian
     f1  = c -> cos(c.θ)^2
     Δ_f1 = c -> -1-3*cos(2*c.θ)
     Δ2_f1 = c -> 6+18*cos(2*c.θ)
@@ -342,8 +342,8 @@ end
     S = SphericalHarmonic()[:,Block.(Base.OneTo(10))]
     xyz = axes(S,1)
     @test Laplacian(xyz) isa Laplacian
-    @test Laplacian(xyz)^2 isa QuasiArrays.ApplyQuasiArray
-    @test Laplacian(xyz)^3 isa QuasiArrays.ApplyQuasiArray
+    @test Laplacian(xyz)^2 isa Laplacian
+    @test Laplacian(xyz)^3 isa Laplacian
     f1  = c -> cos(c.θ)^2
     Δ_f1 = c -> -1-3*cos(2*c.θ)
     Δ2_f1 = c -> 6+18*cos(2*c.θ)
@@ -361,8 +361,8 @@ end
     S = RealSphericalHarmonic()[:,Block.(Base.OneTo(10))]
     xyz = axes(S,1)
     @test Laplacian(xyz) isa Laplacian
-    @test Laplacian(xyz)^2 isa QuasiArrays.ApplyQuasiArray
-    @test Laplacian(xyz)^3 isa QuasiArrays.ApplyQuasiArray
+    @test Laplacian(xyz)^2 isa Laplacian
+    @test Laplacian(xyz)^3 isa Laplacian
     f1  = c -> cos(c.θ)^2
     Δ_f1 = c -> -1-3*cos(2*c.θ)
     Δ2_f1 = c -> 6+18*cos(2*c.θ)
@@ -381,25 +381,25 @@ end
     α = 1/3
     S = SphericalHarmonic()
     Sxyz = axes(S,1)
-    SΔα = AbsLaplacianPower(Sxyz,α)
+    SΔα = AbsLaplacian(Sxyz,α)
     Δ = Laplacian(Sxyz)
     @test copy(SΔα) == SΔα
-    @test SΔα isa AbsLaplacianPower
+    @test SΔα isa AbsLaplacian
     @test SΔα isa QuasiArrays.LazyQuasiMatrix
     @test axes(SΔα) == (axes(S,1),axes(S,1))
-    @test abs(Δ) == -Δ == AbsLaplacianPower(axes(Δ,1),1)
+    @test abs(Δ) == -Δ == AbsLaplacian(axes(Δ,1),1)
     @test abs(Δ)^α == SΔα
     # Set 2
     α = 7/13
     S = SphericalHarmonic()
     Sxyz = axes(S,1)
-    SΔα = AbsLaplacianPower(Sxyz,α)
+    SΔα = AbsLaplacian(Sxyz,α)
     Δ = Laplacian(Sxyz)
     @test copy(SΔα) == SΔα
-    @test SΔα isa AbsLaplacianPower
+    @test SΔα isa AbsLaplacian
     @test SΔα isa QuasiArrays.LazyQuasiMatrix
     @test axes(SΔα) == (axes(S,1),axes(S,1))
-    @test abs(Δ) == -Δ == AbsLaplacianPower(axes(Δ,1),1)
+    @test abs(Δ) == -Δ == AbsLaplacian(axes(Δ,1),1)
     @test abs(Δ)^α == SΔα
 end
 
@@ -417,9 +417,9 @@ end
 @testset "Angular momentum" begin
     S = SphericalHarmonic()
     R = RealSphericalHarmonic()
-    ∂θ = AngularMomentum(axes(S, 1))
+    ∂θ = AngularMomentum(S)
     @test axes(∂θ) == (axes(S, 1), axes(S, 1))
-    @test ∂θ == AngularMomentum(axes(R, 1)) == AngularMomentum(axes(S, 1).domain)
+    @test ∂θ == AngularMomentum(R) == AngularMomentum(axes(S, 1).domain)
     @test copy(∂θ) ≡ ∂θ
     A = S \ (∂θ * S)
     A2 = S \ (∂θ^2 * S)
