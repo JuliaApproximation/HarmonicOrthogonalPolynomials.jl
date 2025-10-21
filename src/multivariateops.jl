@@ -15,8 +15,7 @@ _getindex(::Type{Tuple{IND1,IND2}}, P::MultivariateOrthogonalPolynomial, (𝐱,J
 _getindex(::Type{Tuple{IND1,IND2}}, P::MultivariateOrthogonalPolynomial, (𝐱,JR)::Tuple{IND1,BlockRange{1}}) where {IND1,IND2} = P[𝐱, Block.(OneTo(Int(maximum(JR))))][JR]
 _getindex(::Type{Tuple{IND1,IND2}}, P::MultivariateOrthogonalPolynomial, (𝐱,Jj)::Tuple{IND1,BlockIndex{1}}) where {IND1,IND2} = P[𝐱, block(Jj)][blockindex(Jj)]
 _getindex(::Type{Tuple{IND1,IND2}}, P::MultivariateOrthogonalPolynomial, (𝐱,j)::Tuple{IND1,IND2}) where {IND1,IND2} = P[𝐱, findblockindex(axes(P,2), j)]
-_getindex(::Type{Tuple{IND1,IND2}}, P::MultivariateOrthogonalPolynomial, (𝐱,jr)::Tuple{IND1,AbstractVector{IND2}}) where {IND1,IND2} = P[𝐱, Block.(OneTo(Int(findblock(axes(P,2), maximum(jr)))))][jr]
-_getindex(::Type{Tuple{IND1,IND2}}, P::MultivariateOrthogonalPolynomial, (𝐱,jr)::Tuple{AbstractVector{IND1},AbstractVector{IND2}}) where {IND1,IND2} = error("hi")
+_getindex(::Type{Tuple{IND1,IND2}}, P::MultivariateOrthogonalPolynomial, (𝐱,jr)::Tuple{IND1,AbstractArray{IND2}}) where {IND1,IND2} = P[𝐱, Block.(OneTo(Int(findblock(axes(P,2), maximum(jr)))))][jr]
 
 const FirstInclusion = BroadcastQuasiVector{<:Any, typeof(first), <:Tuple{Inclusion}}
 const LastInclusion = BroadcastQuasiVector{<:Any, typeof(last), <:Tuple{Inclusion}}

@@ -12,7 +12,7 @@ import ContinuumArrays: TransformFactorization, @simplify, ProjectionFactorizati
 import ClassicalOrthogonalPolynomials: checkpoints, _sum, cardinality, increasingtruncations
 import BlockBandedMatrices: BlockRange1, _BandedBlockBandedMatrix
 import FastTransforms: Plan, interlace
-import QuasiArrays: LazyQuasiMatrix, LazyQuasiArrayStyle
+import QuasiArrays: LazyQuasiMatrix, LazyQuasiArrayStyle, _getindex
 import InfiniteArrays: InfStepRange, RangeCumsum
 
 export SphericalHarmonic, UnitSphere, SphericalCoordinate, RadialCoordinate, Block, associatedlegendre, RealSphericalHarmonic, sphericalharmonicy, abs, -, ^, AngularMomentum, Laplacian, AbsLaplacian
