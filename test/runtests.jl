@@ -74,7 +74,7 @@ end
                           0.25sqrt(105/2π)sin(θ)^2*cos(θ)*exp(2im*φ),
                           0.125sqrt(35/π)sin(θ)^3*exp(3im*φ)]
 
-    @test S[x,Block.(1:4)] == [S[x,Block(1)]; S[x,Block(2)]; S[x,Block(3)]; S[x,Block(4)]]
+    @test S[x,Block.(1:4)] == S[x,Block.(Base.OneTo(4))] == [S[x,Block(1)]; S[x,Block(2)]; S[x,Block(3)]; S[x,Block(4)]] 
 end
 
 @testset "Real Evaluation" begin

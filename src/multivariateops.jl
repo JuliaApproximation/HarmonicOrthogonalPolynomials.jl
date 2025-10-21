@@ -91,3 +91,7 @@ const MAX_PLOT_BLOCKS = 200
 grid_layout(::AbstractMultivariateOPLayout, S, n::Integer) = grid(S, findblock(axes(S,2), n))
 plotgrid_layout(::AbstractMultivariateOPLayout, S, n::Integer) = plotgrid(S, findblock(axes(S,2), n))
 plotgrid_layout(::AbstractMultivariateOPLayout, S, B::Block{1}) = grid(S, min(2B, Block(MAX_PLOT_BLOCKS)))
+
+
+grid(P::MultivariateOrthogonalPolynomial, n::Int) = grid(P, findblock(axes(P,2),n))
+plan_transform(P::MultivariateOrthogonalPolynomial, Bs::NTuple{N,Int}, dims=ntuple(identity,Val(N))) where N = plan_transform(P, findblock.(Ref(axes(P,2)), Bs), dims)
