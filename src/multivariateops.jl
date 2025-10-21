@@ -10,12 +10,13 @@ const BlockOneTo = BlockRange{1,Tuple{OneTo{Int}}}
 
 copy(P::MultivariateOrthogonalPolynomial) = P
 
-getindex(P::MultivariateOrthogonalPolynomial{D}, xy::StaticVector{D}, JR::BlockOneTo) where D = error("Overload")
-getindex(P::MultivariateOrthogonalPolynomial{D}, xy::StaticVector{D}, J::Block{1}) where D = P[xy, Block.(OneTo(Int(J)))][J]
-getindex(P::MultivariateOrthogonalPolynomial{D}, xy::StaticVector{D}, JR::BlockRange{1}) where D = P[xy, Block.(OneTo(Int(maximum(JR))))][JR]
-getindex(P::MultivariateOrthogonalPolynomial{D}, xy::StaticVector{D}, Jj::BlockIndex{1}) where D = P[xy, block(Jj)][blockindex(Jj)]
-getindex(P::MultivariateOrthogonalPolynomial{D}, xy::StaticVector{D}, j::Integer) where D = P[xy, findblockindex(axes(P,2), j)]
-getindex(P::MultivariateOrthogonalPolynomial{D}, xy::StaticVector{D}, jr::AbstractVector{<:Integer}) where D = P[xy, Block.(OneTo(Int(findblock(axes(P,2), maximum(jr)))))][jr]
+_getindex(::Type{Tuple{IND1,IND2}}, P::MultivariateOrthogonalPolynomial, (𝐱,JR)::Tuple{IND1,BlockOneTo}) where {IND1,IND2} = error("Overload")
+_getindex(::Type{Tuple{IND1,IND2}}, P::MultivariateOrthogonalPolynomial, (𝐱,J)::Tuple{IND1,Block{1}}) where {IND1,IND2} = P[𝐱, Block.(OneTo(Int(J)))][J]
+_getindex(::Type{Tuple{IND1,IND2}}, P::MultivariateOrthogonalPolynomial, (𝐱,JR)::Tuple{IND1,BlockRange{1}}) where {IND1,IND2} = P[𝐱, Block.(OneTo(Int(maximum(JR))))][JR]
+_getindex(::Type{Tuple{IND1,IND2}}, P::MultivariateOrthogonalPolynomial, (𝐱,Jj)::Tuple{IND1,BlockIndex{1}}) where {IND1,IND2} = P[𝐱, block(Jj)][blockindex(Jj)]
+_getindex(::Type{Tuple{IND1,IND2}}, P::MultivariateOrthogonalPolynomial, (𝐱,j)::Tuple{IND1,IND2}) where {IND1,IND2} = P[𝐱, findblockindex(axes(P,2), j)]
+_getindex(::Type{Tuple{IND1,IND2}}, P::MultivariateOrthogonalPolynomial, (𝐱,jr)::Tuple{IND1,AbstractVector{IND2}}) where {IND1,IND2} = P[𝐱, Block.(OneTo(Int(findblock(axes(P,2), maximum(jr)))))][jr]
+_getindex(::Type{Tuple{IND1,IND2}}, P::MultivariateOrthogonalPolynomial, (𝐱,jr)::Tuple{AbstractVector{IND1},AbstractVector{IND2}}) where {IND1,IND2} = error("hi")
 
 const FirstInclusion = BroadcastQuasiVector{<:Any, typeof(first), <:Tuple{Inclusion}}
 const LastInclusion = BroadcastQuasiVector{<:Any, typeof(last), <:Tuple{Inclusion}}
