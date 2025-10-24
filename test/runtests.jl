@@ -1,5 +1,5 @@
 using HarmonicOrthogonalPolynomials, StaticArrays, Test, InfiniteArrays, LinearAlgebra, BlockArrays, ClassicalOrthogonalPolynomials, QuasiArrays
-import HarmonicOrthogonalPolynomials: ZSphericalCoordinate, associatedlegendre, grid, SphereTrav, RealSphereTrav, plotgrid
+import HarmonicOrthogonalPolynomials: ZSphericalCoordinate, associatedlegendre, grid, SphereTrav, RealSphereTrav, plotgrid, BivariateOrthogonalPolynomial
 
 # @testset "associated legendre" begin
 #     m = 2
@@ -74,7 +74,7 @@ end
                           0.25sqrt(105/2π)sin(θ)^2*cos(θ)*exp(2im*φ),
                           0.125sqrt(35/π)sin(θ)^3*exp(3im*φ)]
 
-    @test S[x,Block.(1:4)] == [S[x,Block(1)]; S[x,Block(2)]; S[x,Block(3)]; S[x,Block(4)]]
+    @test S[x,Block.(1:4)] == S[x,Block.(Base.OneTo(4))] == [S[x,Block(1)]; S[x,Block(2)]; S[x,Block(3)]; S[x,Block(4)]] 
 end
 
 @testset "Real Evaluation" begin
@@ -428,3 +428,13 @@ end
     @test isdiag(A[1:N, 1:N])
     @test A[1:N, 1:N]^2 ≈ A2[1:N, 1:N]
 end
+
+
+struct IncompleteMultivariateOP <: BivariateOrthogonalPolynomial{Float64} end
+Base.axes(::IncompleteMultivariateOP) = Inclusion((-1.0..1)^2), blockedrange(Base.oneto(∞))
+
+@test_throws "Overload" IncompleteMultivariateOP()[SVector(0.1,0.2),2]
+@test_throws "Overload" IncompleteMultivariateOP()[SVector(0.1,0.2),Block(2)]
+@test_throws "Overload" IncompleteMultivariateOP()[SVector(0.1,0.2),Block(2)[2]]
+@test_throws "Overload" IncompleteMultivariateOP()[SVector(0.1,0.2),[1,2]]
+

@@ -12,7 +12,7 @@ import ContinuumArrays: TransformFactorization, @simplify, ProjectionFactorizati
 import ClassicalOrthogonalPolynomials: checkpoints, _sum, cardinality, increasingtruncations
 import BlockBandedMatrices: BlockRange1, _BandedBlockBandedMatrix
 import FastTransforms: Plan, interlace
-import QuasiArrays: LazyQuasiMatrix, LazyQuasiArrayStyle
+import QuasiArrays: LazyQuasiMatrix, LazyQuasiArrayStyle, _getindex
 import InfiniteArrays: InfStepRange, RangeCumsum
 
 export SphericalHarmonic, UnitSphere, SphericalCoordinate, RadialCoordinate, Block, associatedlegendre, RealSphericalHarmonic, sphericalharmonicy, abs, -, ^, AngularMomentum, Laplacian, AbsLaplacian
@@ -86,7 +86,6 @@ end
 getindex(S::AbstractSphericalHarmonic, x::StaticVector{3}, K::BlockIndex{1}) = S[SphericalCoordinate(x), K]
 getindex(S::AbstractSphericalHarmonic, x::StaticVector{3}, K::Block{1}) = S[x, axes(S,2)[K]]
 getindex(S::AbstractSphericalHarmonic, x::StaticVector{3}, KR::BlockOneTo) = mortar([S[x, K] for K in KR])
-getindex(S::AbstractSphericalHarmonic, x::StaticVector{3}, k::Int) = S[x, findblockindex(axes(S,2), k)]
 getindex(S::AbstractSphericalHarmonic, x::StaticVector{3}, kr::AbstractUnitRange{Int}) = [S[x, k] for k in kr]
 
 # @simplify *(Ac::QuasiAdjoint{<:Any,<:SphericalHarmonic}, B::SphericalHarmonic) =
@@ -127,9 +126,6 @@ RealSphericalHarmonicTransform{T}(N::Int) where T<:Real = RealSphericalHarmonicT
 
 plan_transform(P::SphericalHarmonic{T}, (N,)::Tuple{Block{1}}, dims=1) where T = SphericalHarmonicTransform{T}(Int(N))
 plan_transform(P::RealSphericalHarmonic{T}, (N,)::Tuple{Block{1}}, dims=1) where T = RealSphericalHarmonicTransform{T}(Int(N))
-
-grid(P::MultivariateOrthogonalPolynomial, n::Int) = grid(P, findblock(axes(P,2),n))
-plan_transform(P::MultivariateOrthogonalPolynomial, Bs::NTuple{N,Int}, dims=ntuple(identity,Val(N))) where N = plan_transform(P, findblock.(Ref(axes(P,2)), Bs), dims)
 
 function _sum(A::AbstractSphericalHarmonic{T}, dims) where T
     @assert dims == 1
