@@ -32,6 +32,9 @@ norm(rθ::RadialCoordinate) = rθ.r
 abstract type AbstractSphericalCoordinate{T} <: StaticVector{3,T} end
 norm(::AbstractSphericalCoordinate{T}) where T = real(one(T))
 Base.in(::AbstractSphericalCoordinate, ::UnitSphere{T}) where T = true
+
+
+zero(::Type{<:AbstractSphericalCoordinate{T}}) where T = zero(SVector{3,T})
 """
    SphericalCoordinate(θ, φ)
 
