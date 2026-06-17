@@ -5,7 +5,7 @@ import Base: OneTo, oneto, axes, getindex, convert, to_indices, tail, eltype, *,
 import BlockArrays: block, blockindex, unblock, BlockSlice
 import DomainSets: indomain, Sphere
 import LinearAlgebra: norm, factorize
-import QuasiArrays: to_quasi_index, SubQuasiArray, *, AbstractQuasiVecOrMat, pointchoice, Inclusion
+import QuasiArrays: to_quasi_index, SubQuasiArray, *, AbstractQuasiVecOrMat, Inclusion
 import ContinuumArrays: TransformFactorization, @simplify, ProjectionFactorization, plan_grid_transform, plan_transform, grid, grid_layout, plotgrid_layout,
                         AbstractBasisLayout, MemoryLayout, abslaplacian, laplacian, AbstractDifferentialQuasiMatrix, operatorcall, similaroperator, SubBasisLayout,
                         ApplyLayout, arguments, ExpansionLayout, basis_axes, grammatrix
@@ -26,9 +26,7 @@ include("coordinates.jl")
 # roughly try to double the computational time each iteration
 increasingtruncations(::BlockedOneTo{Int,<:RangeCumsum{Int,<:AbstractRange}}) = broadcast(n -> Block.(oneto((2^(n ÷ 2)) ÷ 2)), 4:2:∞)
 
-
 checkpoints(S::UnitSphere) = [SphericalCoordinate{eltype(eltype(S))}(0.1,0.2), SphericalCoordinate{eltype(eltype(S))}(0.3,0.4)]
-pointchoice(S::UnitSphere) = SphericalCoordinate{eltype(eltype(S))}(0,0)
 
 include("sphericalharmonics.jl")
 include("laplace.jl")
