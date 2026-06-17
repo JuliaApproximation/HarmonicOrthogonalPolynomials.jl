@@ -25,6 +25,10 @@ StaticArrays.SVector(rθ::RadialCoordinate) = SVector(rθ.r * cos(rθ.θ), rθ.r
 getindex(R::RadialCoordinate, k::Int) = SVector(R)[k]
 norm(rθ::RadialCoordinate) = rθ.r
 
+zero(::Type{RadialCoordinate{T}}) where T = RadialCoordinate{T}(0,0)
+zero(r::RadialCoordinate) = RadialCoordinate(zero(r.r), zero(r.θ))
+
+
 ###
 # SphericalCoordinate
 ###
@@ -35,6 +39,8 @@ Base.in(::AbstractSphericalCoordinate, ::UnitSphere{T}) where T = true
 
 
 zero(::Type{<:AbstractSphericalCoordinate{T}}) where T = zero(SVector{3,T})
+zero(::AbstractSphericalCoordinate{T}) where T = zero(SVector{3,T})
+
 """
    SphericalCoordinate(θ, φ)
 

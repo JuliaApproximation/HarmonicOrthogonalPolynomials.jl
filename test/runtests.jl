@@ -22,6 +22,7 @@ end
     @test RadialCoordinate(1,0.2) isa RadialCoordinate{Float64}
     @test RadialCoordinate(1,1) isa RadialCoordinate{Float64}
     @test_throws BoundsError rθ[3]
+    @test zero(rθ) ≡ zero(typeof(rθ ))
 end
 
 @testset "SphericalCoordinate" begin
@@ -30,6 +31,8 @@ end
     @test θφ == SVector(θφ)
     @test SphericalCoordinate(1,1) isa SphericalCoordinate{Float64}
     @test_throws BoundsError θφ[4]
+
+    @test zero(θφ) ≡ zero(typeof(θφ)) ≡ SVector{3,Float64}(0,0,0)
 
     φz = ZSphericalCoordinate(0.1,cos(0.2))
     @test φz == SVector(φz)
