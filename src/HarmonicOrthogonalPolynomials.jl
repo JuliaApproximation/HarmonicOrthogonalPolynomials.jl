@@ -3,7 +3,7 @@ using FastTransforms, LinearAlgebra, ClassicalOrthogonalPolynomials, ContinuumAr
         BlockArrays, BlockBandedMatrices, InfiniteArrays, StaticArrays, QuasiArrays, Base, SpecialFunctions, FillArrays
 import Base: OneTo, oneto, axes, getindex, convert, to_indices, tail, eltype, *, ==, ^, copy, -, abs, resize!, zero
 import BlockArrays: block, blockindex, unblock, BlockSlice
-import DomainSets: indomain, Sphere
+import DomainSets: indomain, Sphere, choice
 import LinearAlgebra: norm, factorize
 import QuasiArrays: to_quasi_index, SubQuasiArray, *, AbstractQuasiVecOrMat, Inclusion
 import ContinuumArrays: TransformFactorization, @simplify, ProjectionFactorization, plan_grid_transform, plan_transform, grid, grid_layout, plotgrid_layout,
@@ -27,6 +27,7 @@ include("coordinates.jl")
 increasingtruncations(::BlockedOneTo{Int,<:RangeCumsum{Int,<:AbstractRange}}) = broadcast(n -> Block.(oneto((2^(n ÷ 2)) ÷ 2)), 4:2:∞)
 
 checkpoints(S::UnitSphere) = [SphericalCoordinate{eltype(eltype(S))}(0.1,0.2), SphericalCoordinate{eltype(eltype(S))}(0.3,0.4)]
+choice(S::Inclusion{<:Any,<:UnitSphere}) = SphericalCoordinate{eltype(eltype(S))}(0,0)
 
 include("sphericalharmonics.jl")
 include("laplace.jl")
