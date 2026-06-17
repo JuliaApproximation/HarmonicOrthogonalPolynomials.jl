@@ -233,10 +233,6 @@ end
         @test copy(S) == S
         @test copy(R) == R
     end
-
-    @test "sum" begin
-        
-    end
 end
 
 
