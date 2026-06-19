@@ -1,12 +1,16 @@
 using HarmonicOrthogonalPolynomials, StaticArrays, Test, InfiniteArrays, LinearAlgebra, BlockArrays, ClassicalOrthogonalPolynomials, QuasiArrays
 import HarmonicOrthogonalPolynomials: ZSphericalCoordinate, associatedlegendre, grid, SphereTrav, RealSphereTrav, plotgrid, BivariateOrthogonalPolynomial
+using FastTransforms: pochhammer
 
-# @testset "associated legendre" begin
-#     m = 2
-#     θ = 0.1
-#     x = cos(θ)
-#     @test associatedlegendre(m)[x,1:10] ≈ -(2:11) .* (sin(θ/2)^m * cos(θ/2)^m * Jacobi(m,m)[x,1:10])
-# end
+@testset "associated legendre" begin
+    m = 2
+    ℓ = 3
+    θ = 0.1
+    x = cos(θ)
+    @test associatedlegendre(m)[x,1:10] ≈ -(2:11) .* (sin(θ/2)^m * cos(θ/2)^m * Jacobi(m,m)[x,1:10])
+
+    associatedlegendre(ℓ, m, x) ≈ (-2)^m * pochhammer(1/2, m)
+end
 
 @testset "SphereTrav" begin
     A = SphereTrav([1 2 3; 4 0 0])

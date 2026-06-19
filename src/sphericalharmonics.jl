@@ -9,6 +9,7 @@ Inclusion(::UnitSphere{SVector{3,T}}) where T = Inclusion(UnitSphere{SphericalCo
 
 axes(S::AbstractSphericalHarmonic{T}) where T = (Inclusion(UnitSphere{SphericalCoordinate{real(T)}}()), blockedrange(1:2:∞))
 
+associatedlegendre(ℓ, m, x) = (-1)^m * prod(1:2:(2m+1)) * (1-x^2)^(m/2) * ultrasphericalc(ℓ-m, m+1/2, x)
 associatedlegendre(m) = ((-1)^m*prod(1:2:(2m-1)))*(UltrasphericalWeight((m+1)/2).*Ultraspherical(m+1/2))
 lgamma(n) = logabsgamma(n)[1]
 
