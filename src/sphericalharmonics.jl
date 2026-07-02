@@ -9,14 +9,14 @@ Inclusion(::UnitSphere{SVector{3,T}}) where T = Inclusion(UnitSphere{SphericalCo
 
 axes(S::AbstractSphericalHarmonic{T}) where T = (Inclusion(UnitSphere{SphericalCoordinate{real(T)}}()), blockedrange(1:2:∞))
 
-associatedlegendre(ℓ, m, x) = m < 0 ? (-1)^m * exp(loggamma(ℓ-m+1)-loggamma(ℓ+m+1)) * associatedlegendre(ℓ, -m, x) : (-1)^m *  (1-x^2)^(m/2) * prod(1:2:(2m-1)) * ultrasphericalc(ℓ-m, m+1/2, x)
+associatedlegendre(ℓ, m, x) = m < 0 ? (-1)^m * exp(loggamma(ℓ+m+1)-loggamma(ℓ-m+1)) * associatedlegendre(ℓ, -m, x) : (-1)^m *  (1-x^2)^(m/2) * prod(1:2:(2m-1)) * ultrasphericalc(ℓ-m, m+1/2, x)
 associatedlegendre(m) = ((-1)^m*prod(1:2:(2m-1)))*(UltrasphericalWeight((m+1)/2).*Ultraspherical(m+1/2))
 lgamma(n) = logabsgamma(n)[1]
 
 
 function sphericalharmonicy(ℓ, m, θ, φ)
-    m̃ = abs(m)
-    exp((lgamma(ℓ+m̃+1)+lgamma(ℓ-m̃+1)-2lgamma(ℓ+1))/2)*sqrt((2ℓ+1)/(4π)) * exp(im*m*φ) * sin(θ/2)^m̃ * cos(θ/2)^m̃ * jacobip(ℓ-m̃,m̃,m̃,cos(θ))
+    T = promote_type(eltype(θ), eltype(φ))
+    sqrt((2ℓ+1)/4convert(T,π)) * exp((lgamma(ℓ-m+one(T)) - lgamma(ℓ+m+one(T)))/2) * associatedlegendre(ℓ, m, cos(θ)) * exp(im*m*φ)
 end
 
 function getindex(S::SphericalHarmonic{T}, x::SphericalCoordinate, K::BlockIndex{1}) where T

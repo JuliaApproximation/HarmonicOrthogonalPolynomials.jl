@@ -11,6 +11,11 @@ using FastTransforms: pochhammer
     for ℓ = 0:5, m = 0:ℓ
         @test associatedlegendre(ℓ, m, x) ≈ (-2)^m * pochhammer(1/2, m) * sin(θ)^m * ultrasphericalc(ℓ-m, m+1/2, x) ≈
             (-1)^m * (1-x^2)^(m/2) * diff(Legendre(), m)[x,ℓ+1]
+        @test associatedlegendre(ℓ, -m, x) ≈ (-1)^m * factorial(ℓ-m)/factorial(ℓ+m) * associatedlegendre(ℓ, m, x)
+    end
+
+    for m = 0:5
+        @test associatedlegendre(m, -m, x) ≈ sin(θ)^m/(2^m * factorial(m))
     end
 end
 
@@ -58,6 +63,7 @@ end
     @testset "Evaluation" begin
         S = SphericalHarmonic()
         @test copy(S) == S
+        @test eltype(S) == ComplexF64
         @test eltype(axes(S,1)) == SphericalCoordinate{Float64}
 
         θ,φ = 0.1,0.2
@@ -71,12 +77,10 @@ end
         @test associatedlegendre(2)[0.1,1] ≈ 2.97
 
         for ℓ=0:5, m=-ℓ:ℓ
-            @show ℓ,m
-            @test S[𝐱, Block(ℓ+1)[m+ℓ+1]] ≈ sphericalharmonicy(ℓ, m, θ, φ) ≈ sqrt((2ℓ+1)*factorial(ℓ-m)/(4π * factorial(ℓ+m))) * associatedlegendre(ℓ, m, cos(θ)) * exp(im*m*φ) ≈
-                (-1)^abs(m) * sqrt((ℓ+1/2) * factorial(ℓ-abs(m))/factorial(ℓ+abs(m))) * associatedlegendre(ℓ, abs(m), cos(θ)) * sqrt((2-iszero(m))/(2π)) * exp(im*m*φ)
+            @test S[𝐱, Block(ℓ+1)[m+ℓ+1]] ≈ sphericalharmonicy(ℓ, m, θ, φ) ≈ sqrt(factorial(ℓ-m) * (2ℓ+1)/(4π*factorial(ℓ+m))) * associatedlegendre(ℓ, m, cos(θ)) * exp(im*m*φ)
         end
 
-        @test S[𝐱,Block(2)] ≈ 0.5sqrt(3/π)*[1/sqrt(2)*sin(θ)exp(-im*φ),cos(θ),1/sqrt(2)*sin(θ)exp(im*φ)]
+        @test S[𝐱,Block(2)] ≈ 0.5sqrt(3/π)*[1/sqrt(2)*sin(θ)exp(-im*φ),cos(θ),-1/sqrt(2)*sin(θ)exp(im*φ)]
         @test S[𝐱,Block(3)] ≈ [0.25sqrt(15/2π)sin(θ)^2*exp(-2im*φ),
                                 0.5sqrt(15/2π)sin(θ)cos(θ)exp(-im*φ),
                                 0.25sqrt(5/π)*(3cos(θ)^2-1),
