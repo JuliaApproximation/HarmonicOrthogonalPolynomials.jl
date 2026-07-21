@@ -25,7 +25,7 @@ But we also allow function approximation, building on top of  [ContinuumArrays.j
 julia> S = SphericalHarmonic() # A quasi-matrix representation of spherical harmonics
 SphericalHarmonic{Complex{Float64}}
 
-julia> S[SphericalCoordinate(θ,φ),Block(ℓ+1)] # evaluate all spherical harmonics with specified ℓ
+julia> S[SphericalCoordinate(φ,θ), Block(ℓ+1)] # evaluate all spherical harmonics with specified ℓ
 5-element Array{Complex{Float64},1}:
  0.003545977402630546 - 0.0014992151996309556im
   0.07521112971423363 - 0.015246050775019674im
@@ -61,6 +61,6 @@ julia> S \ f.(𝐱) # expansion coefficients, adaptively computed
 
 julia> f̃ = S * (S \ f.(𝐱)); # expansion of f in spherical harmonics
 
-julia> f̃[SphericalCoordinate(θ,φ)] # approximates f
+julia> f̃[SphericalCoordinate(φ, θ)] # approximates f
 1.1026374731849062 + 4.004893695029451e-16im
 ```

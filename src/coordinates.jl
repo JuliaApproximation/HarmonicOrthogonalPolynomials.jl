@@ -7,7 +7,7 @@
 
 represents the 2-vector [r*cos(θ),r*sin(θ)]
 """
-struct RadialCoordinate{T} <: StaticVector{2,T}
+struct RadialCoordinate{T<:Real} <: StaticVector{2,T}
     r::T
     θ::T
     RadialCoordinate{T}(r::T, θ::T) where T = new{T}(r, θ)
@@ -26,70 +26,96 @@ getindex(R::RadialCoordinate, k::Int) = SVector(R)[k]
 norm(rθ::RadialCoordinate) = rθ.r
 
 zero(::Type{RadialCoordinate{T}}) where T = RadialCoordinate{T}(0,0)
-zero(r::RadialCoordinate) = RadialCoordinate(zero(r.r), zero(r.θ))
+zero(r::RadialCoordinate) = zero(typeof(r))
 
 
 ###
 # SphericalCoordinate
 ###
 
-abstract type AbstractSphericalCoordinate{T} <: StaticVector{3,T} end
-norm(::AbstractSphericalCoordinate{T}) where T = real(one(T))
-Base.in(::AbstractSphericalCoordinate, ::UnitSphere{T}) where T = true
-
-
-zero(::Type{<:AbstractSphericalCoordinate{T}}) where T = zero(SVector{3,T})
-zero(::AbstractSphericalCoordinate{T}) where T = zero(SVector{3,T})
+abstract type AbstractSphericalCoordinate{T<:Real} <: StaticVector{3,T} end
+norm(S::AbstractSphericalCoordinate{T}) where T = real(S.r)
+Base.in(S::AbstractSphericalCoordinate, ::UnitSphere{T}) where T = isone(norm(S))
 
 """
-   SphericalCoordinate(θ, φ)
+   SphericalCoordinate(r, φ, θ)
 
-represents a point in the unit sphere as a `StaticVector{3}` in
-spherical coordinates where the pole is `SphericalCoordinate(0,φ) == SVector(0,0,1)`
-and `SphericalCoordinate(π/2,0) == SVector(1,0,0)`. 
+represents a point in ℝ^3 as a `StaticVector{3}` in
+spherical coordinates where the pole is `SphericalCoordinate(r,φ,0) == SVector(0,0,r)`
+and `SphericalCoordinate(r,0,π/2) == SVector(r,0,0)`. 
 """
-struct SphericalCoordinate{T} <: AbstractSphericalCoordinate{T}
-    θ::T
+struct SphericalCoordinate{T<:Real} <: AbstractSphericalCoordinate{T}
+    r::T
     φ::T
-    SphericalCoordinate{T}(θ::T, φ::T) where T = new{T}(θ, φ)
+    θ::T
+    SphericalCoordinate{T}(r::T, φ::T, θ::T) where T = new{T}(r, φ, θ)
 end
 
-SphericalCoordinate{T}(θ, φ) where T = SphericalCoordinate{T}(convert(T,θ), convert(T,φ))
-SphericalCoordinate(θ::V, φ::T) where {T<:Real,V<:Real} = SphericalCoordinate{float(promote_type(T,V))}(θ, φ)
+SphericalCoordinate{T}(r, φ, θ) where T = SphericalCoordinate{T}(convert(T,r), convert(T,φ), convert(T,θ))
+SphericalCoordinate(r::T, φ::T, θ::T) where T = SphericalCoordinate{real(float(T))}(r, φ, θ)
+SphericalCoordinate(r, φ, θ) = SphericalCoordinate(promote(r, φ, θ)...)
+SphericalCoordinate{T}(φ, θ) where T = SphericalCoordinate(one(T), φ, θ)
+SphericalCoordinate(φ, θ) = SphericalCoordinate(1, φ, θ)
 SphericalCoordinate(S::SphericalCoordinate) = S
 
 """
-   ZSphericalCoordinate(φ, z)
+   ZSphericalCoordinate(r, φ, z)
 
-represents a point in the unit sphere as a `StaticVector{3}` in
+represents a point in ℝ^3 as a `StaticVector{3}` in
 where `z` is specified while the angle coordinate is given by spherical coordinates where the pole is `SVector(0,0,1)`.
 """
-struct ZSphericalCoordinate{T} <: AbstractSphericalCoordinate{T}
+struct ZSphericalCoordinate{T<:Real} <: AbstractSphericalCoordinate{T}
+    r::T
     φ::T
     z::T
-    function ZSphericalCoordinate{T}(φ::T, z::T) where T 
-        -1 ≤ z ≤ 1 || throw(ArgumentError("z must be between -1 and 1"))
-        new{T}(φ, z)
+    function ZSphericalCoordinate{T}(r::T, φ::T, z::T) where T 
+        -r ≤ z ≤ r || throw(ArgumentError("z must be between -r and r"))
+        new{T}(r, φ, z)
     end
 end
-ZSphericalCoordinate(φ::T, z::V) where {T,V} = ZSphericalCoordinate{promote_type(T,V)}(φ,z)
-ZSphericalCoordinate(S::SphericalCoordinate) = ZSphericalCoordinate(S.φ, cos(S.θ))
-ZSphericalCoordinate{T}(S::SphericalCoordinate) where T = ZSphericalCoordinate{T}(S.φ, cos(S.θ))
+ZSphericalCoordinate(r::T, φ::T, z::T) where T = ZSphericalCoordinate{T}(r, φ, z)
+ZSphericalCoordinate(r, φ, z) = ZSphericalCoordinate(promote(r, φ, z)...)
+ZSphericalCoordinate{T}(φ, z) where T = ZSphericalCoordinate(one(T), φ, z)
+ZSphericalCoordinate(φ, z) = ZSphericalCoordinate(1, φ, z)
+ZSphericalCoordinate(S::SphericalCoordinate) = ZSphericalCoordinate(S.r, S.φ, cos(S.θ))
+ZSphericalCoordinate{T}(S::SphericalCoordinate) where T = ZSphericalCoordinate{T}(S.r, S.φ, cos(S.θ))
 
-SphericalCoordinate(S::ZSphericalCoordinate) = SphericalCoordinate(acos(S.z), S.φ)
-SphericalCoordinate{T}(S::ZSphericalCoordinate) where T = SphericalCoordinate{T}(acos(S.z), S.φ)
+SphericalCoordinate(S::ZSphericalCoordinate) = SphericalCoordinate(S.r, S.φ, acos(S.z))
+SphericalCoordinate{T}(S::ZSphericalCoordinate) where T = SphericalCoordinate{T}(S.r, S.φ, acos(S.z))
 
+
+
+function ZSphericalCoordinate{T}(𝐱::StaticVector{3}) where T
+    x,y,z = 𝐱
+    ZSphericalCoordinate{T}(norm(𝐱), atan(y,x), z)
+end
+
+ZSphericalCoordinate{T}(𝐱::AbstractVector) where T = ZSphericalCoordinate{T}(convert(SVector{3,T}, 𝐱))
+
+ZSphericalCoordinate(𝐱::AbstractVector{T}) where T = ZSphericalCoordinate{T}(𝐱)
+ZSphericalCoordinate(𝐱::StaticVector{3,T}) where T = ZSphericalCoordinate{T}(𝐱)
+
+SphericalCoordinate(𝐱::AbstractVector) = SphericalCoordinate(ZSphericalCoordinate(𝐱))
+SphericalCoordinate(𝐱::StaticVector{3}) = SphericalCoordinate(ZSphericalCoordinate(𝐱))
+SphericalCoordinate{T}(𝐱::AbstractVector) where T = SphericalCoordinate(ZSphericalCoordinate{T}(𝐱))
+SphericalCoordinate{T}(𝐱::StaticVector{3}) where T = SphericalCoordinate(ZSphericalCoordinate{T}(𝐱))
+
+zero(::Type{SphericalCoordinate{T}}) where T = SphericalCoordinate(zero(T), zero(T), zero(T))
+zero(S::Type{ZSphericalCoordinate{T}}) where T = ZSphericalCoordinate(zero(T), zero(T), zero(T))
+zero(S::AbstractSphericalCoordinate) = zero(typeof(S))
 
 function getindex(S::SphericalCoordinate, k::Int)
-    k == 1 && return sin(S.θ) * cos(S.φ)
-    k == 2 && return sin(S.θ) * sin(S.φ)
-    k == 3 && return cos(S.θ)
+    r,φ,θ = S.r, S.φ, S.θ
+    k == 1 && return r * sin(θ) * cos(φ)
+    k == 2 && return r * sin(θ) * sin(φ)
+    k == 3 && return r * cos(θ)
     throw(BoundsError(S, k))
 end
 function getindex(S::ZSphericalCoordinate, k::Int) 
-    k == 1 && return sqrt(1-S.z^2) * cos(S.φ)
-    k == 2 && return sqrt(1-S.z^2) * sin(S.φ)
-    k == 3 && return S.z
+    r,φ,z = S.r, S.φ, S.z
+    k == 1 && return sqrt(r^2-z^2) * cos(φ)
+    k == 2 && return sqrt(r^2-z^2) * sin(φ)
+    k == 3 && return z
     throw(BoundsError(S, k))
 end
 
@@ -102,3 +128,8 @@ convert(::Type{SphericalCoordinate}, S::ZSphericalCoordinate) = SphericalCoordin
 convert(::Type{SphericalCoordinate{T}}, S::ZSphericalCoordinate) where T = SphericalCoordinate{T}(S)
 convert(::Type{ZSphericalCoordinate}, S::SphericalCoordinate) = ZSphericalCoordinate(S)
 convert(::Type{ZSphericalCoordinate{T}}, S::SphericalCoordinate) where T = ZSphericalCoordinate{T}(S)
+
+convert(::Type{SphericalCoordinate{T}}, S::StaticVector{3}) where T = SphericalCoordinate{T}(S)
+convert(::Type{ZSphericalCoordinate{T}}, S::StaticVector{3}) where T = ZSphericalCoordinate{T}(S)
+convert(::Type{SphericalCoordinate}, S::StaticVector{3}) = SphericalCoordinate(S)
+convert(::Type{ZSphericalCoordinate}, S::StaticVector{3}) = ZSphericalCoordinate(S)

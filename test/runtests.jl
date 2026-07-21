@@ -1,4 +1,4 @@
-using HarmonicOrthogonalPolynomials, StaticArrays, Test, InfiniteArrays, LinearAlgebra, BlockArrays, ClassicalOrthogonalPolynomials, QuasiArrays, ContinuumArrays
+using HarmonicOrthogonalPolynomials, StaticArrays, Test, InfiniteArrays, LinearAlgebra, BlockArrays, ClassicalOrthogonalPolynomials, QuasiArrays, ContinuumArrays, Rotations, WignerD
 import HarmonicOrthogonalPolynomials: ZSphericalCoordinate, associatedlegendre, grid, SphereTrav, RealSphereTrav, plotgrid, BivariateOrthogonalPolynomial
 using FastTransforms: pochhammer
 
@@ -35,15 +35,14 @@ end
     @test_throws BoundsError rθ[3]
     @test zero(rθ) ≡ zero(typeof(rθ ))
 end
-
 @testset "SphericalCoordinate" begin
-    θφ = SphericalCoordinate(0.2,0.1)
+    θφ = SphericalCoordinate(0.1,0.2)
     @test θφ ≈ ZSphericalCoordinate(0.1,cos(0.2))
     @test θφ == SVector(θφ)
     @test SphericalCoordinate(1,1) isa SphericalCoordinate{Float64}
     @test_throws BoundsError θφ[4]
 
-    @test zero(θφ) ≡ zero(typeof(θφ)) ≡ SVector{3,Float64}(0,0,0)
+    @test zero(θφ) == zero(typeof(θφ)) == SVector{3,Float64}(0,0,0)
 
     φz = ZSphericalCoordinate(0.1,cos(0.2))
     @test φz == SVector(φz)
@@ -67,7 +66,7 @@ end
         @test eltype(axes(S,1)) == SphericalCoordinate{Float64}
 
         θ,φ = 0.1,0.2
-        𝐱 = SphericalCoordinate(θ,φ)
+        𝐱 = SphericalCoordinate(φ, θ)
         @test S[𝐱, Block(1)[1]] == S[𝐱,1] == sqrt(1/(4π))
         @test view(S,𝐱, Block(1)).indices[1] isa SphericalCoordinate
         @test S[𝐱, Block(1)] == [sqrt(1/(4π))]
@@ -183,7 +182,7 @@ end
         R = RealSphericalHarmonic()
         @test eltype(axes(R,1)) == SphericalCoordinate{Float64}
         θ,φ = 0.1,0.2
-        x = SphericalCoordinate(θ,φ)
+        x = SphericalCoordinate(φ, θ)
         @test R[x, Block(1)[1]] ≈ R[x,1] ≈ sqrt(1/(4π))
         @test R[x, Block(2)][1] ≈ S[x, Block(2)][2]
         # Careful here with the (-1) conventions?
@@ -470,6 +469,16 @@ end
 
     @test [sum(S[𝐱,k]'S[𝐱,j] for 𝐱 in UnitSphere()) for k=1:10, j=1:10] ≈ [sum(R[𝐱,k]'R[𝐱,j] for 𝐱 in UnitSphere()) for k=1:10, j=1:10] ≈ I
     @test S'S == R'R == Eye(∞)
+end
+
+@testset "representation theory" begin
+    α,β,γ = 0.1,0.2,0.3
+    ρ = RotZYZ(α,β,γ)
+    𝐱 = SphericalCoordinate(0,0)
+    S = SphericalHarmonic()
+    for ℓ = 0:5
+        @test S[ρ*𝐱, Block(ℓ+1)] ≈ conj(wignerD(ℓ, α, β, γ)) * S[𝐱, Block(ℓ+1)]
+    end
 end
 
 

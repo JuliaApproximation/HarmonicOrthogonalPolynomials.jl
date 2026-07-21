@@ -77,7 +77,7 @@ function grid(S::AbstractSphericalHarmonic, B::Block{1})
     # The longitudinal grid (mod $\pi$):
     M = 2*N-1
     φ = (0:M-1)*2/convert(T, M)
-    SphericalCoordinate.(π*θ, π*φ')
+    SphericalCoordinate.(π*φ', π*θ)
 end
 
 
