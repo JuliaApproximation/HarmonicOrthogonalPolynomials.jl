@@ -93,7 +93,14 @@ end
 SphericalHarmonicTransform{T}(N::Int) where T<:Complex = SphericalHarmonicTransform{T}(plan_spinsph2fourier(T, N, 0), plan_spinsph_analysis(T, N, 2N-1, 0))
 RealSphericalHarmonicTransform{T}(N::Int) where T<:Real = RealSphericalHarmonicTransform{T}(plan_sph2fourier(T, N), plan_sph_analysis(T, N, 2N-1))
 
-*(P::SphericalHarmonicTransform{T}, f::Matrix{T}) where T = SphereTrav(P.sph2fourier \ (P.analysis * f))
+function _sh_flipsigns!(M::AbstractMatrix{T}) where T 
+    for j=3:4:size(M,2)
+        view(M, :,j) .*= -one(T)
+    end
+    M
+end
+
+*(P::SphericalHarmonicTransform{T}, f::Matrix{T}) where T = SphereTrav(_sh_flipsigns!(P.sph2fourier \ (P.analysis * f)))
 *(P::RealSphericalHarmonicTransform{T}, f::Matrix{T}) where T = RealSphereTrav(P.sph2fourier \ (P.analysis * f))
 
 
