@@ -130,6 +130,8 @@ convert(::Type{ZSphericalCoordinate}, S::SphericalCoordinate) = ZSphericalCoordi
 convert(::Type{ZSphericalCoordinate{T}}, S::SphericalCoordinate) where T = ZSphericalCoordinate{T}(S)
 
 convert(::Type{SphericalCoordinate{T}}, S::StaticVector{3}) where T = SphericalCoordinate{T}(S)
-convert(::Type{ZSphericalCoordinate{T}}, S::StaticVector{3}) where T = ZSphericalCoordinate{T}(S)
+function convert(::Type{ZSphericalCoordinate{T}}, S::StaticVector{3}) where T
+    ZSphericalCoordinate{T}(S)
+end
 convert(::Type{SphericalCoordinate}, S::StaticVector{3}) = SphericalCoordinate(S)
 convert(::Type{ZSphericalCoordinate}, S::StaticVector{3}) = ZSphericalCoordinate(S)

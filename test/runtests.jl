@@ -56,6 +56,26 @@ end
 
     @test ZSphericalCoordinate(θφ) ≡ convert(ZSphericalCoordinate, θφ) ≡ φz
     @test SphericalCoordinate(φz) ≡ convert(SphericalCoordinate, φz) ≡ θφ
+
+    @test ZSphericalCoordinate{Float64}(0.1, cos(0.2)) ≡ φz
+    @test SphericalCoordinate{Float64}(φz) ≡ θφ
+    @test convert(ZSphericalCoordinate{Float64}, θφ) ≡ φz
+    @test convert(SphericalCoordinate{Float64}, φz) ≡ θφ
+
+    @test zero(φz) == zero(ZSphericalCoordinate{Float64}) == SVector{3,Float64}(0,0,0)
+
+    𝐱 = SVector(θφ)
+    @test ZSphericalCoordinate(𝐱) ≡ φz
+    @test SphericalCoordinate(𝐱) ≡ θφ
+    @test convert(ZSphericalCoordinate, 𝐱) ≡ φz
+    @test convert(ZSphericalCoordinate{Float64}, 𝐱) ≡ φz
+    @test convert(SphericalCoordinate, 𝐱) ≡ θφ
+    @test convert(SphericalCoordinate{Float64}, 𝐱) ≡ θφ
+    𝐯 = collect(𝐱)
+    @test ZSphericalCoordinate(𝐯) ≡ φz
+    @test ZSphericalCoordinate{Float64}(𝐯) ≡ φz
+    @test SphericalCoordinate(𝐯) ≡ θφ
+    @test SphericalCoordinate{Float64}(𝐯) ≡ θφ
 end
 
 @testset "SphericalHarmonic" begin
