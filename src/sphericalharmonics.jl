@@ -9,13 +9,14 @@ Inclusion(::UnitSphere{SVector{3,T}}) where T = Inclusion(UnitSphere{SphericalCo
 
 axes(S::AbstractSphericalHarmonic{T}) where T = (Inclusion(UnitSphere{SphericalCoordinate{real(T)}}()), blockedrange(1:2:∞))
 
+associatedlegendre(ℓ, m, x) = m < 0 ? (-1)^m * exp(loggamma(ℓ+m+1)-loggamma(ℓ-m+1)) * associatedlegendre(ℓ, -m, x) : (-1)^m *  (1-x^2)^(m/2) * prod(1:2:(2m-1)) * ultrasphericalc(ℓ-m, m+1/2, x)
 associatedlegendre(m) = ((-1)^m*prod(1:2:(2m-1)))*(UltrasphericalWeight((m+1)/2).*Ultraspherical(m+1/2))
 lgamma(n) = logabsgamma(n)[1]
 
 
 function sphericalharmonicy(ℓ, m, θ, φ)
-    m̃ = abs(m)
-    exp((lgamma(ℓ+m̃+1)+lgamma(ℓ-m̃+1)-2lgamma(ℓ+1))/2)*sqrt((2ℓ+1)/(4π)) * exp(im*m*φ) * sin(θ/2)^m̃ * cos(θ/2)^m̃ * jacobip(ℓ-m̃,m̃,m̃,cos(θ))
+    T = promote_type(eltype(θ), eltype(φ))
+    sqrt((2ℓ+1)/4convert(T,π)) * exp((lgamma(ℓ-m+one(T)) - lgamma(ℓ+m+one(T)))/2) * associatedlegendre(ℓ, m, cos(θ)) * exp(im*m*φ)
 end
 
 function getindex(S::SphericalHarmonic{T}, x::SphericalCoordinate, K::BlockIndex{1}) where T
@@ -76,7 +77,7 @@ function grid(S::AbstractSphericalHarmonic, B::Block{1})
     # The longitudinal grid (mod $\pi$):
     M = 2*N-1
     φ = (0:M-1)*2/convert(T, M)
-    SphericalCoordinate.(π*θ, π*φ')
+    SphericalCoordinate.(π*φ', π*θ)
 end
 
 
@@ -92,7 +93,14 @@ end
 SphericalHarmonicTransform{T}(N::Int) where T<:Complex = SphericalHarmonicTransform{T}(plan_spinsph2fourier(T, N, 0), plan_spinsph_analysis(T, N, 2N-1, 0))
 RealSphericalHarmonicTransform{T}(N::Int) where T<:Real = RealSphericalHarmonicTransform{T}(plan_sph2fourier(T, N), plan_sph_analysis(T, N, 2N-1))
 
-*(P::SphericalHarmonicTransform{T}, f::Matrix{T}) where T = SphereTrav(P.sph2fourier \ (P.analysis * f))
+function _sh_flipsigns!(M::AbstractMatrix{T}) where T 
+    for j=3:4:size(M,2)
+        view(M, :,j) .*= -one(T)
+    end
+    M
+end
+
+*(P::SphericalHarmonicTransform{T}, f::Matrix{T}) where T = SphereTrav(_sh_flipsigns!(P.sph2fourier \ (P.analysis * f)))
 *(P::RealSphericalHarmonicTransform{T}, f::Matrix{T}) where T = RealSphereTrav(P.sph2fourier \ (P.analysis * f))
 
 

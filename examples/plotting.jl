@@ -3,7 +3,7 @@ plotly()
 
 G = HarmonicOrthogonalPolynomials.grid(SphericalHarmonic()[:,Block.(Base.OneTo(10))])
 n,m = size(G)
-g = append!(vec(G), [SphericalCoordinate(0,0), SphericalCoordinate(π,0)])
+g = append!(vec(G), [SphericalCoordinate(0,0), SphericalCoordinate(0,π)])
 x,y,z = ntuple(k ->getindex.(g,k), 3); 
 N = length(g)
 

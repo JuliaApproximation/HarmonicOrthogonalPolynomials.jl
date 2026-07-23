@@ -1,6 +1,6 @@
 name = "HarmonicOrthogonalPolynomials"
 uuid = "e416a80e-9640-42f3-8df8-80a93ca01ea5"
-version = "0.7.4"
+version = "0.8"
 authors = ["Sheehan Olver <solver@mac.com>"]
 
 [deps]
@@ -34,7 +34,9 @@ StaticArrays = "1"
 julia = "1.10"
 
 [extras]
+Rotations = "6038ab10-8711-5258-84ad-4b1120ba62dc"
 Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
+WignerD = "87c4ff3e-34df-11e9-37a7-516cea4e0402"
 
 [targets]
-test = ["Test"]
+test = ["Rotations", "Test", "WignerD"]
