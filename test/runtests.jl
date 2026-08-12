@@ -48,6 +48,7 @@ end
 
     φz = ZSphericalCoordinate(0.1,cos(0.2))
     @test φz == SVector(φz)
+    @test_throws BoundsError φz[4]
 
     @test norm(θφ) === norm(φz) === 1.0
     @test LinearAlgebra.norm_sqr(θφ) === 1.0
