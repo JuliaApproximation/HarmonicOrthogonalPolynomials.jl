@@ -36,6 +36,8 @@ end
     @test zero(rθ) ≡ zero(typeof(rθ ))
     @test norm(rθ) == rθ.r
     @test LinearAlgebra.norm_sqr(rθ) == rθ.r^2
+    𝐱 = SVector(rθ)
+    @test RadialCoordinate(𝐱) ≈ rθ
 end
 @testset "SphericalCoordinate" begin
     θφ = SphericalCoordinate(0.1,0.2)
