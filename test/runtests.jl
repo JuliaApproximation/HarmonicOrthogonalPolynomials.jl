@@ -34,6 +34,10 @@ end
     @test RadialCoordinate(1,1) isa RadialCoordinate{Float64}
     @test_throws BoundsError rθ[3]
     @test zero(rθ) ≡ zero(typeof(rθ ))
+    @test norm(rθ) == rθ.r
+    @test LinearAlgebra.norm_sqr(rθ) == rθ.r^2
+    𝐱 = SVector(rθ)
+    @test RadialCoordinate(𝐱) ≈ rθ
 end
 @testset "SphericalCoordinate" begin
     θφ = SphericalCoordinate(0.1,0.2)
@@ -46,8 +50,11 @@ end
 
     φz = ZSphericalCoordinate(0.1,cos(0.2))
     @test φz == SVector(φz)
+    @test_throws BoundsError φz[4]
 
     @test norm(θφ) === norm(φz) === 1.0
+    @test LinearAlgebra.norm_sqr(θφ) === 1.0
+    @test LinearAlgebra.norm_sqr(φz) === 1.0
     @test θφ in UnitSphere()
     @test ZSphericalCoordinate(0.1,cos(0.2)) in UnitSphere()
 
@@ -58,9 +65,14 @@ end
     @test SphericalCoordinate(φz) ≡ convert(SphericalCoordinate, φz) ≡ θφ
 
     @test ZSphericalCoordinate{Float64}(0.1, cos(0.2)) ≡ φz
+    @test ZSphericalCoordinate{Float64}(1.0, 0.1, cos(0.2)) ≡ φz
     @test SphericalCoordinate{Float64}(φz) ≡ θφ
     @test convert(ZSphericalCoordinate{Float64}, θφ) ≡ φz
     @test convert(SphericalCoordinate{Float64}, φz) ≡ θφ
+
+    # test SphericalCoordinate from ZSphericalCoordinate with non-unit radius
+    𝐫 = ZSphericalCoordinate(2.0, 0.1, 2.0*cos(0.2))
+    @test SphericalCoordinate(𝐫) ≈ SphericalCoordinate(2.0, 0.1, 0.2)
 
     @test zero(φz) == zero(ZSphericalCoordinate{Float64}) == SVector{3,Float64}(0,0,0)
 
@@ -97,7 +109,12 @@ end
 
         for ℓ=0:5, m=-ℓ:ℓ
             @test S[𝐱, Block(ℓ+1)[m+ℓ+1]] ≈ sphericalharmonicy(ℓ, m, θ, φ) ≈ sqrt(factorial(ℓ-m) * (2ℓ+1)/(4π*factorial(ℓ+m))) * associatedlegendre(ℓ, m, cos(θ)) * exp(im*m*φ)
+            @test sphericalharmonicy(ℓ, m, 𝐱) ≈ sphericalharmonicy(ℓ, m, θ, φ)
+            @test sphericalharmonicy(ℓ, m, SVector(𝐱)) ≈ sphericalharmonicy(ℓ, m, θ, φ)
         end
+
+        𝐬 = SVector(𝐱)
+        @test S[𝐬, Block(1)[1]] ≈ sqrt(1/(4π))
 
         @test S[𝐱,Block(2)] ≈ 0.5sqrt(3/π)*[1/sqrt(2)*sin(θ)exp(-im*φ),cos(θ),-1/sqrt(2)*sin(θ)exp(im*φ)]
         @test S[𝐱,Block(3)] ≈ [0.25sqrt(15/2π)sin(θ)^2*exp(-2im*φ),

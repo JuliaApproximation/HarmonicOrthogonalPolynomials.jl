@@ -16,14 +16,15 @@ end
 RadialCoordinate{T}(r, θ) where T = RadialCoordinate{T}(convert(T,r), convert(T,θ))
 RadialCoordinate(r::T, θ::V) where {T<:Real,V<:Real} = RadialCoordinate{float(promote_type(T,V))}(r, θ)
 
-function RadialCoordinate(xy::StaticVector{2})
-    x,y = xy
-    RadialCoordinate(norm(xy), atan(y,x))
+function RadialCoordinate(𝐱::StaticVector{2})
+    x,y = 𝐱
+    RadialCoordinate(norm(𝐱), atan(y,x))
 end
 
-StaticArrays.SVector(rθ::RadialCoordinate) = SVector(rθ.r * cos(rθ.θ), rθ.r * sin(rθ.θ))
+StaticArrays.SVector(𝐱::RadialCoordinate) = SVector(𝐱.r * cos(𝐱.θ), 𝐱.r * sin(𝐱.θ))
 getindex(R::RadialCoordinate, k::Int) = SVector(R)[k]
-norm(rθ::RadialCoordinate) = rθ.r
+norm(𝐱::RadialCoordinate) = 𝐱.r
+LinearAlgebra.norm_sqr(𝐱::RadialCoordinate) = 𝐱.r^2
 
 zero(::Type{RadialCoordinate{T}}) where T = RadialCoordinate{T}(0,0)
 zero(r::RadialCoordinate) = zero(typeof(r))
@@ -35,6 +36,7 @@ zero(r::RadialCoordinate) = zero(typeof(r))
 
 abstract type AbstractSphericalCoordinate{T<:Real} <: StaticVector{3,T} end
 norm(S::AbstractSphericalCoordinate{T}) where T = real(S.r)
+LinearAlgebra.norm_sqr(𝐱::AbstractSphericalCoordinate) = norm(𝐱)^2
 Base.in(S::AbstractSphericalCoordinate, ::UnitSphere{T}) where T = isone(norm(S))
 
 """
@@ -80,11 +82,11 @@ ZSphericalCoordinate(φ, z) = ZSphericalCoordinate(1, φ, z)
 ZSphericalCoordinate(S::SphericalCoordinate) = ZSphericalCoordinate(S.r, S.φ, cos(S.θ))
 ZSphericalCoordinate{T}(S::SphericalCoordinate) where T = ZSphericalCoordinate{T}(S.r, S.φ, cos(S.θ))
 
-SphericalCoordinate(S::ZSphericalCoordinate) = SphericalCoordinate(S.r, S.φ, acos(S.z))
+SphericalCoordinate(S::ZSphericalCoordinate) = SphericalCoordinate(S.r, S.φ, acos(S.z/S.r))
 SphericalCoordinate{T}(S::ZSphericalCoordinate) where T = SphericalCoordinate{T}(S.r, S.φ, acos(S.z))
 
 
-
+ZSphericalCoordinate{T}(r, φ, z) where T = ZSphericalCoordinate{T}(T(r), T(φ), T(z))
 function ZSphericalCoordinate{T}(𝐱::StaticVector{3}) where T
     x,y,z = 𝐱
     ZSphericalCoordinate{T}(norm(𝐱), atan(y,x), z)
@@ -92,8 +94,8 @@ end
 
 ZSphericalCoordinate{T}(𝐱::AbstractVector) where T = ZSphericalCoordinate{T}(convert(SVector{3,T}, 𝐱))
 
-ZSphericalCoordinate(𝐱::AbstractVector{T}) where T = ZSphericalCoordinate{T}(𝐱)
-ZSphericalCoordinate(𝐱::StaticVector{3,T}) where T = ZSphericalCoordinate{T}(𝐱)
+ZSphericalCoordinate(𝐱::AbstractVector{T}) where T = ZSphericalCoordinate{float(T)}(𝐱)
+ZSphericalCoordinate(𝐱::StaticVector{3,T}) where T = ZSphericalCoordinate{float(T)}(𝐱)
 
 SphericalCoordinate(𝐱::AbstractVector) = SphericalCoordinate(ZSphericalCoordinate(𝐱))
 SphericalCoordinate(𝐱::StaticVector{3}) = SphericalCoordinate(ZSphericalCoordinate(𝐱))

@@ -14,16 +14,17 @@ associatedlegendre(m) = ((-1)^m*prod(1:2:(2m-1)))*(UltrasphericalWeight((m+1)/2)
 lgamma(n) = logabsgamma(n)[1]
 
 
-function sphericalharmonicy(ℓ, m, θ, φ)
-    T = promote_type(eltype(θ), eltype(φ))
-    sqrt((2ℓ+1)/4convert(T,π)) * exp((lgamma(ℓ-m+one(T)) - lgamma(ℓ+m+one(T)))/2) * associatedlegendre(ℓ, m, cos(θ)) * exp(im*m*φ)
-end
+sphericalharmonicnormalization(T, ℓ, m) = sqrt((2ℓ+1)/4convert(T,π)) * exp((lgamma(ℓ-m+one(T)) - lgamma(ℓ+m+one(T)))/2)
+sphericalharmonicy(ℓ, m, θ, φ) = sphericalharmonicnormalization(promote_type(eltype(θ), eltype(φ)), ℓ, m) * associatedlegendre(ℓ, m, cos(θ)) * exp(im*m*φ)
 
-function getindex(S::SphericalHarmonic{T}, x::SphericalCoordinate, K::BlockIndex{1}) where T
+sphericalharmonicy(ℓ, m, 𝐱::SphericalCoordinate) = sphericalharmonicy(ℓ, m, 𝐱.θ, 𝐱.φ)
+sphericalharmonicy(ℓ, m, 𝐱::StaticVector{3}) = sphericalharmonicy(ℓ, m, convert(SphericalCoordinate, 𝐱))
+
+function getindex(S::SphericalHarmonic{T}, 𝐱::StaticVector{3}, K::BlockIndex{1}) where T
     ℓ = Int(block(K))
     k = blockindex(K)
     m = k-ℓ
-    convert(T, sphericalharmonicy(ℓ-1, m, x.θ, x.φ))::T
+    convert(T, sphericalharmonicy(ℓ-1, m, 𝐱))::T
 end
 
 ==(::SphericalHarmonic{T},::SphericalHarmonic{T}) where T = true
