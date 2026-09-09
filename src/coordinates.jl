@@ -16,12 +16,21 @@ end
 RadialCoordinate{T}(r, θ) where T = RadialCoordinate{T}(convert(T,r), convert(T,θ))
 RadialCoordinate(r::T, θ::V) where {T<:Real,V<:Real} = RadialCoordinate{float(promote_type(T,V))}(r, θ)
 
-function RadialCoordinate(𝐱::StaticVector{2})
+RadialCoordinate(𝐱::RadialCoordinate) = 𝐱
+RadialCoordinate{T}(𝐱::RadialCoordinate{T}) where T = 𝐱
+RadialCoordinate{T}(𝐱::RadialCoordinate) where T = RadialCoordinate(convert(T, 𝐱.r), convert(T, 𝐱.θ))
+function RadialCoordinate{T}(𝐱::StaticVector{2}) where T
     x,y = 𝐱
-    RadialCoordinate(norm(𝐱), atan(y,x))
+    RadialCoordinate{T}(norm(𝐱), atan(y,x))
 end
 
+RadialCoordinate(𝐱::StaticVector{2,T}) where T = RadialCoordinate{T}(𝐱)
+
 StaticArrays.SVector(𝐱::RadialCoordinate) = SVector(𝐱.r * cos(𝐱.θ), 𝐱.r * sin(𝐱.θ))
+
+convert(::Type{RadialCoordinate}, 𝐱::StaticVector) = RadialCoordinate(𝐱)
+convert(::Type{RadialCoordinate{T}}, 𝐱::StaticVector) where T = RadialCoordinate{T}(𝐱)
+
 getindex(R::RadialCoordinate, k::Int) = SVector(R)[k]
 norm(𝐱::RadialCoordinate) = 𝐱.r
 LinearAlgebra.norm_sqr(𝐱::RadialCoordinate) = 𝐱.r^2
