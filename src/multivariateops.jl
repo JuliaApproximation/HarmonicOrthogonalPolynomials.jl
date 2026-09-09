@@ -71,9 +71,6 @@ where A[N] is (N+1) x 2N, B[N] and C[N] are (N+1) x N.
 ContinuumArrays.transform_ldiv(V::SubQuasiArray{<:Any,2,<:MultivariateOrthogonalPolynomial,<:Tuple{Inclusion,BlockSlice{BlockOneTo}}}, B::AbstractQuasiArray, _) =
     factorize(V) \ B
 
-ContinuumArrays._sub_factorize(::Tuple{Any,Any}, (kr,jr)::Tuple{Any,BlockSlice{BlockRange1{OneTo{Int}}}}, L, dims...; kws...) =
-    TransformFactorization(plan_grid_transform(parent(L), (last(jr.block), dims...), 1)...)
-
 # function factorize(V::SubQuasiArray{<:Any,2,<:MultivariateOrthogonalPolynomial,<:Tuple{Inclusion,AbstractVector{Int}}})
 #     P = parent(V)
 #     _,jr = parentindices(V)
