@@ -1,4 +1,5 @@
-using HarmonicOrthogonalPolynomials, StaticArrays, Test, InfiniteArrays, LinearAlgebra, BlockArrays, ClassicalOrthogonalPolynomials, QuasiArrays, ContinuumArrays, Rotations, WignerD
+using HarmonicOrthogonalPolynomials, StaticArrays, Test, InfiniteArrays, LinearAlgebra, BlockArrays, ClassicalOrthogonalPolynomials, QuasiArrays, ContinuumArrays
+using Rotations, WignerD
 import HarmonicOrthogonalPolynomials: ZSphericalCoordinate, associatedlegendre, grid, SphereTrav, RealSphereTrav, plotgrid, BivariateOrthogonalPolynomial
 using FastTransforms: pochhammer
 
@@ -38,6 +39,19 @@ end
     @test LinearAlgebra.norm_sqr(rθ) == rθ.r^2
     𝐱 = SVector(rθ)
     @test RadialCoordinate(𝐱) ≈ rθ
+
+    @test RadialCoordinate(rθ) ≡ rθ
+    @test RadialCoordinate{Float64}(rθ) ≡ rθ
+    rθ32 = RadialCoordinate{Float32}(rθ)
+    @test rθ32 isa RadialCoordinate{Float32}
+    @test rθ32.r ≈ rθ.r && rθ32.θ ≈ rθ.θ
+
+    @test RadialCoordinate{Float64}(𝐱) ≈ rθ
+    @test RadialCoordinate{Float32}(𝐱) isa RadialCoordinate{Float32}
+
+    @test convert(RadialCoordinate, 𝐱) ≈ rθ
+    @test convert(RadialCoordinate{Float64}, 𝐱) ≈ rθ
+    @test convert(RadialCoordinate{Float32}, 𝐱) isa RadialCoordinate{Float32}
 end
 @testset "SphericalCoordinate" begin
     θφ = SphericalCoordinate(0.1,0.2)
@@ -176,6 +190,13 @@ end
             @test c == S \ (𝐱 -> 1).(𝐱)
             @test (S * c)[SphericalCoordinate(0.1,0.2)] ≈ 1
 
+            V = SphericalHarmonic()[:, [1,2,3,4]]
+            Q = factorize(V)
+            d = Q \ (𝐱 -> 1).(𝐱)
+            @test axes(d,1) == Base.OneTo(4)
+            @test d == c
+            @test d == V \ (𝐱 -> 1).(𝐱)
+
 
             @test S \ (S * [zeros(3); 1]) ≈ [zeros(3); 1]
 
@@ -260,6 +281,13 @@ end
             @test blocksize(c,1) == blocksize(S,2)
             @test c == S \ (𝐱 -> 1).(𝐱)
             @test (S * c)[SphericalCoordinate(0.1,0.2)] ≈ 1
+
+            V = RealSphericalHarmonic()[:, [1,2,3,4]]
+            Q = factorize(V)
+            d = Q \ (𝐱 -> 1).(𝐱)
+            @test axes(d,1) == Base.OneTo(4)
+            @test d == c
+            @test d == V \ (𝐱 -> 1).(𝐱)
 
             f = c -> ((x,y,z) = c; 1 + x + y + z)
             u = S * (S \ f.(𝐱))
@@ -526,4 +554,3 @@ Base.axes(::IncompleteMultivariateOP) = Inclusion((-1.0..1)^2), blockedrange(Bas
 @test_throws "Overload" IncompleteMultivariateOP()[SVector(0.1,0.2),Block(2)]
 @test_throws "Overload" IncompleteMultivariateOP()[SVector(0.1,0.2),Block(2)[2]]
 @test_throws "Overload" IncompleteMultivariateOP()[SVector(0.1,0.2),[1,2]]
-
