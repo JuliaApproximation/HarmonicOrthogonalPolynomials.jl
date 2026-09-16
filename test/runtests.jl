@@ -189,6 +189,13 @@ end
             @test c == S \ (𝐱 -> 1).(𝐱)
             @test (S * c)[SphericalCoordinate(0.1,0.2)] ≈ 1
 
+            V = SphericalHarmonic()[:, [1,2,3,4]]
+            Q = factorize(V)
+            d = Q \ (𝐱 -> 1).(𝐱)
+            @test axes(d,1) == Base.OneTo(4)
+            @test d == c
+            @test d == V \ (𝐱 -> 1).(𝐱)
+
 
             @test S \ (S * [zeros(3); 1]) ≈ [zeros(3); 1]
 
@@ -273,6 +280,13 @@ end
             @test blocksize(c,1) == blocksize(S,2)
             @test c == S \ (𝐱 -> 1).(𝐱)
             @test (S * c)[SphericalCoordinate(0.1,0.2)] ≈ 1
+
+            V = RealSphericalHarmonic()[:, [1,2,3,4]]
+            Q = factorize(V)
+            d = Q \ (𝐱 -> 1).(𝐱)
+            @test axes(d,1) == Base.OneTo(4)
+            @test d == c
+            @test d == V \ (𝐱 -> 1).(𝐱)
 
             f = c -> ((x,y,z) = c; 1 + x + y + z)
             u = S * (S \ f.(𝐱))
@@ -539,4 +553,3 @@ Base.axes(::IncompleteMultivariateOP) = Inclusion((-1.0..1)^2), blockedrange(Bas
 @test_throws "Overload" IncompleteMultivariateOP()[SVector(0.1,0.2),Block(2)]
 @test_throws "Overload" IncompleteMultivariateOP()[SVector(0.1,0.2),Block(2)[2]]
 @test_throws "Overload" IncompleteMultivariateOP()[SVector(0.1,0.2),[1,2]]
-
