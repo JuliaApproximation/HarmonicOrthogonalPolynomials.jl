@@ -17,14 +17,14 @@ RadialCoordinate{T}(r, θ) where T = RadialCoordinate{T}(convert(T,r), convert(T
 RadialCoordinate(r::T, θ::V) where {T<:Real,V<:Real} = RadialCoordinate{float(promote_type(T,V))}(r, θ)
 
 RadialCoordinate(𝐱::RadialCoordinate) = 𝐱
-RadialCoordinate{T}(𝐱::RadialCoordinate{T}) where T = 𝐱
-RadialCoordinate{T}(𝐱::RadialCoordinate) where T = RadialCoordinate(convert(T, 𝐱.r), convert(T, 𝐱.θ))
-function RadialCoordinate{T}(𝐱::StaticVector{2}) where T
+RadialCoordinate{T}(𝐱::RadialCoordinate{T}) where T<:Real = 𝐱
+RadialCoordinate{T}(𝐱::RadialCoordinate) where T<:Real = RadialCoordinate(convert(T, 𝐱.r), convert(T, 𝐱.θ))
+function RadialCoordinate{T}(𝐱::StaticVector{2}) where T<:Real
     x,y = 𝐱
     RadialCoordinate{T}(norm(𝐱), atan(y,x))
 end
 
-RadialCoordinate(𝐱::StaticVector{2,T}) where T = RadialCoordinate{T}(𝐱)
+RadialCoordinate(𝐱::StaticVector{2,T}) where T<:Real = RadialCoordinate{T}(𝐱)
 
 StaticArrays.SVector(𝐱::RadialCoordinate) = SVector(𝐱.r * cos(𝐱.θ), 𝐱.r * sin(𝐱.θ))
 
