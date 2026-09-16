@@ -38,6 +38,19 @@ end
     @test LinearAlgebra.norm_sqr(rθ) == rθ.r^2
     𝐱 = SVector(rθ)
     @test RadialCoordinate(𝐱) ≈ rθ
+
+    @test RadialCoordinate(rθ) ≡ rθ
+    @test RadialCoordinate{Float64}(rθ) ≡ rθ
+    rθ32 = RadialCoordinate{Float32}(rθ)
+    @test rθ32 isa RadialCoordinate{Float32}
+    @test rθ32.r ≈ rθ.r && rθ32.θ ≈ rθ.θ
+
+    @test RadialCoordinate{Float64}(𝐱) ≈ rθ
+    @test RadialCoordinate{Float32}(𝐱) isa RadialCoordinate{Float32}
+
+    @test convert(RadialCoordinate, 𝐱) ≈ rθ
+    @test convert(RadialCoordinate{Float64}, 𝐱) ≈ rθ
+    @test convert(RadialCoordinate{Float32}, 𝐱) isa RadialCoordinate{Float32}
 end
 @testset "SphericalCoordinate" begin
     θφ = SphericalCoordinate(0.1,0.2)
