@@ -52,6 +52,15 @@ end
     @test convert(RadialCoordinate, 𝐱) ≈ rθ
     @test convert(RadialCoordinate{Float64}, 𝐱) ≈ rθ
     @test convert(RadialCoordinate{Float32}, 𝐱) isa RadialCoordinate{Float32}
+
+    𝐱v = Vector(𝐱)
+    @test RadialCoordinate(𝐱v) ≈ rθ
+    @test RadialCoordinate{Float64}(𝐱v) ≈ rθ
+    @test RadialCoordinate{Float32}(𝐱v) isa RadialCoordinate{Float32}
+
+    @test convert(RadialCoordinate, 𝐱v) ≈ rθ
+    @test convert(RadialCoordinate{Float64}, 𝐱v) ≈ rθ
+    @test convert(RadialCoordinate{Float32}, 𝐱v) isa RadialCoordinate{Float32}
 end
 @testset "SphericalCoordinate" begin
     θφ = SphericalCoordinate(0.1,0.2)

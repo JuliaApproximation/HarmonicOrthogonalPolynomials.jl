@@ -19,17 +19,23 @@ RadialCoordinate(r::T, θ::V) where {T<:Real,V<:Real} = RadialCoordinate{float(p
 RadialCoordinate(𝐱::RadialCoordinate) = 𝐱
 RadialCoordinate{T}(𝐱::RadialCoordinate{T}) where T<:Real = 𝐱
 RadialCoordinate{T}(𝐱::RadialCoordinate) where T<:Real = RadialCoordinate(convert(T, 𝐱.r), convert(T, 𝐱.θ))
-function RadialCoordinate{T}(𝐱::StaticVector{2}) where T<:Real
+function RadialCoordinate{T}(𝐱::StaticVector{2,<:Real}) where T<:Real
     x,y = 𝐱
     RadialCoordinate{T}(norm(𝐱), atan(y,x))
 end
 
 RadialCoordinate(𝐱::StaticVector{2,T}) where T<:Real = RadialCoordinate{T}(𝐱)
 
+RadialCoordinate{T}(𝐱::AbstractVector) where T<:Real = RadialCoordinate{T}(convert(SVector{2,T}, 𝐱))
+RadialCoordinate(𝐱::AbstractVector{T}) where T<:Real = RadialCoordinate{T}(𝐱)
+
 StaticArrays.SVector(𝐱::RadialCoordinate) = SVector(𝐱.r * cos(𝐱.θ), 𝐱.r * sin(𝐱.θ))
 
+convert(::Type{RadialCoordinate}, 𝐱::AbstractVector) = RadialCoordinate(𝐱)
+convert(::Type{RadialCoordinate{T}}, 𝐱::AbstractVector) where T = RadialCoordinate{T}(𝐱)
 convert(::Type{RadialCoordinate}, 𝐱::StaticVector) = RadialCoordinate(𝐱)
 convert(::Type{RadialCoordinate{T}}, 𝐱::StaticVector) where T = RadialCoordinate{T}(𝐱)
+
 
 getindex(R::RadialCoordinate, k::Int) = SVector(R)[k]
 norm(𝐱::RadialCoordinate) = 𝐱.r
