@@ -8,12 +8,13 @@ import LinearAlgebra: norm, factorize
 import QuasiArrays: to_quasi_index, SubQuasiArray, *, AbstractQuasiVecOrMat, Inclusion
 import ContinuumArrays: TransformFactorization, @simplify, ProjectionFactorization, plan_grid_transform, plan_transform, grid, grid_layout, plotgrid_layout,
                         AbstractBasisLayout, MemoryLayout, abslaplacian, laplacian, AbstractDifferentialQuasiMatrix, operatorcall, similaroperator, SubBasisLayout,
-                        ApplyLayout, arguments, ExpansionLayout, basis_axes, grammatrix
-import ClassicalOrthogonalPolynomials: checkpoints, _sum, cardinality, increasingtruncations
+                        ApplyLayout, arguments, ExpansionLayout, basis_axes, grammatrix, plotgrid, equals_layout,
+                        AbstractWeightedBasisLayout, WeightedBasisLayout, Ldiv
+import ClassicalOrthogonalPolynomials: checkpoints, _sum, cardinality, increasingtruncations, isnormalized, AbstractNormalizedOPLayout, orthogonalityweight
 import BlockBandedMatrices: BlockRange1, _BandedBlockBandedMatrix
 import FastTransforms: Plan, interlace
 import QuasiArrays: LazyQuasiMatrix, LazyQuasiArrayStyle, _getindex
-import InfiniteArrays: InfStepRange, RangeCumsum
+import InfiniteArrays: InfStepRange, RangeCumsum, AbstractInfUnitRange
 using FillArrays: SquareEye
 
 export SphericalHarmonic, UnitSphere, SphericalCoordinate, RadialCoordinate, Block, associatedlegendre, RealSphericalHarmonic, sphericalharmonicy, abs, -, ^, AngularMomentum, Laplacian, AbsLaplacian

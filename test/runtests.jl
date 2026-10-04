@@ -563,3 +563,62 @@ Base.axes(::IncompleteMultivariateOP) = Inclusion((-1.0..1)^2), blockedrange(Bas
 @test_throws "Overload" IncompleteMultivariateOP()[SVector(0.1,0.2),Block(2)]
 @test_throws "Overload" IncompleteMultivariateOP()[SVector(0.1,0.2),Block(2)[2]]
 @test_throws "Overload" IncompleteMultivariateOP()[SVector(0.1,0.2),[1,2]]
+
+struct JacobiMatrixTestOP <: BivariateOrthogonalPolynomial{Float64} end
+Base.axes(::JacobiMatrixTestOP) = Inclusion((-1.0..1)^2), blockedrange(Base.oneto(∞))
+ClassicalOrthogonalPolynomials.jacobimatrix(::Val{d}, ::Normalized{<:Any,JacobiMatrixTestOP}) where d = Diagonal(Fill(d, ∞))
+
+@testset "Normalized multivariate OPs" begin
+    𝐱 = SphericalCoordinate(0.1,0.2)
+    for P in (SphericalHarmonic(), RealSphericalHarmonic())
+        s = BlockedVector(2.0:∞, (axes(P,2),))
+        Q = Normalized(P, s)
+        @test axes(Q) == axes(P)
+
+        @testset "evaluation" begin
+            for 𝐲 in (𝐱, SVector(𝐱))
+                @test Q[𝐲, 3] ≈ P[𝐲, 3] * s[3]
+                @test Q[𝐲, Block(3)] ≈ P[𝐲, Block(3)] .* s[Block(3)]
+                @test Q[𝐲, Block(3)[2]] ≈ P[𝐲, Block(3)[2]] * s[Block(3)[2]]
+                @test Q[𝐲, 1:10] ≈ P[𝐲, 1:10] .* s[1:10]
+                @test Q[𝐲, Block.(1:3)] ≈ P[𝐲, Block.(1:3)] .* s[Block.(1:3)]
+                @test Q[𝐲, [1,3,5]] ≈ P[𝐲, [1,3,5]] .* s[[1,3,5]]
+                @test Q[𝐲, 1:∞][1:10] ≈ P[𝐲, 1:10] .* s[1:10]
+            end
+        end
+
+        @testset "grid" begin
+            @test grid(Q, Block(3)) == grid(P, Block(3))
+            @test grid(Q, 5) == grid(P, 5)
+            @test plotgrid(Q, Block(3)) == plotgrid(P, Block(3))
+            @test plotgrid(Q, 5) == plotgrid(P, 5)
+        end
+
+        @testset "equality" begin
+            @test Q ≠ P
+            @test P ≠ Q
+            @test P ≠ Weighted(P)
+            @test Weighted(P) ≠ P
+        end
+
+        @testset "expansion" begin
+            c = [1.0, 2, 3, 4, 5]
+            f = Q * [c; zeros(∞)]
+            @test f[𝐱] ≈ (P * [s[1:5] .* c; zeros(∞)])[𝐱]
+            @test axes(f.args[2],1) ≡ axes(P,2)
+        end
+    end
+
+    @testset "jacobimatrix broadcast" begin
+        P = JacobiMatrixTestOP()
+        Q = Normalized(P, BlockedVector(Fill(2.0, ∞), (axes(P,2),)))
+        xy = axes(Q,1)
+        x, y = first.(xy), last.(xy) # not fused into the broadcast below
+        X, Y = x .* Q, y .* Q
+        @test X.args[1] ≡ Y.args[1] ≡ Q
+        @test X.args[2] == Diagonal(Fill(1, ∞))
+        @test Y.args[2] == Diagonal(Fill(2, ∞))
+        z = first.(Inclusion((-1.0..1)^3))
+        @test_throws DimensionMismatch z .* Q
+    end
+end
