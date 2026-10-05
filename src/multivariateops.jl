@@ -5,10 +5,17 @@ abstract type AbstractMultivariateOPLayout{d} <: AbstractBasisLayout end
 struct MultivariateOPLayout{d} <: AbstractMultivariateOPLayout{d} end
 MemoryLayout(::Type{<:MultivariateOrthogonalPolynomial{d}}) where d = MultivariateOPLayout{d}()
 
-const NormalizedMultivariateOP = Normalized{<:Any,<:MultivariateOrthogonalPolynomial}
+# Normalized(P) == P * Diagonal(scaling) for multivariate P. Most operations reduce to P via AbstractNormalizedOPLayout
+# but we need to avoid methods that assume univariate OPs.
+struct NormalizedMultivariateOPLayout{d} <: AbstractNormalizedOPLayout end
+normalized_layout(::AbstractMultivariateOPLayout{d}) where d = NormalizedMultivariateOPLayout{d}()
 
-equals_layout(::AbstractNormalizedOPLayout, ::AbstractMultivariateOPLayout, P, Q) = isnormalized(Q) && orthogonalityweight(P) == orthogonalityweight(Q)
-equals_layout(::AbstractMultivariateOPLayout, ::AbstractNormalizedOPLayout, P, Q) = isnormalized(P) && orthogonalityweight(P) == orthogonalityweight(Q)
+for (grid_lay, grd) in ((:grid_layout, :grid), (:plotgrid_layout, :plotgrid)), N in (:Integer, :(Block{1}))
+    @eval $grid_lay(::NormalizedMultivariateOPLayout, Q, n::$N) = $grd(Q.P, n)
+end
+
+equals_layout(::NormalizedMultivariateOPLayout, ::AbstractMultivariateOPLayout, P, Q) = isnormalized(Q) && orthogonalityweight(P) == orthogonalityweight(Q)
+equals_layout(::AbstractMultivariateOPLayout, ::NormalizedMultivariateOPLayout, P, Q) = isnormalized(P) && orthogonalityweight(P) == orthogonalityweight(Q)
 equals_layout(::AbstractMultivariateOPLayout, ::AbstractWeightedBasisLayout, _, _) = false
 equals_layout(::AbstractWeightedBasisLayout, ::AbstractMultivariateOPLayout, _, _) = false
 
@@ -27,12 +34,6 @@ _getindex(::Type{Tuple{IND1,IND2}}, P::MultivariateOrthogonalPolynomial, (𝐱,J
 _getindex(::Type{Tuple{IND1,IND2}}, P::MultivariateOrthogonalPolynomial, (𝐱,j)::Tuple{IND1,IND2}) where {IND1,IND2} = P[𝐱, findblockindex(axes(P,2), j)]
 _getindex(::Type{Tuple{IND1,IND2}}, P::MultivariateOrthogonalPolynomial, (𝐱,jr)::Tuple{IND1,AbstractArray{IND2}}) where {IND1,IND2} = P[𝐱, Block.(OneTo(Int(findblock(axes(P,2), maximum(jr)))))][jr]
 
-# the univariate versions treat 𝐱 as a vector of points
-_getindex(::Type{IND}, Q::NormalizedMultivariateOP, (𝐱,j)::IND) where IND = Q.P[𝐱,j] .* Q.scaling[j]
-for JR in (:(AbstractUnitRange{Int}), :(AbstractInfUnitRange{Int}))
-    @eval getindex(Q::NormalizedMultivariateOP, 𝐱::StaticVector, jr::$JR) = Q.P[𝐱,jr] .* Q.scaling[jr]
-end
-
 const FirstInclusion = BroadcastQuasiVector{<:Any, typeof(first), <:Tuple{Inclusion}}
 const LastInclusion = BroadcastQuasiVector{<:Any, typeof(last), <:Tuple{Inclusion}}
 
@@ -46,8 +47,8 @@ function Base.broadcasted(::LazyQuasiArrayStyle{2}, ::typeof(*), x::LastInclusio
     P*jacobimatrix(Val(2), P)
 end
 
-for (Inc, d) in ((:FirstInclusion, 1), (:LastInclusion, 2))
-    @eval function Base.broadcasted(::LazyQuasiArrayStyle{2}, ::typeof(*), x::$Inc, Q::NormalizedMultivariateOP)
+for (Inc, f, d) in ((:FirstInclusion, :first, 1), (:LastInclusion, :last, 2))
+    @eval function layout_broadcasted(::Tuple{BroadcastLayout{typeof($f)},NormalizedMultivariateOPLayout}, ::typeof(*), x::$Inc, Q)
         axes(x,1) == axes(Q,1) || throw(DimensionMismatch())
         Q*jacobimatrix(Val($d), Q)
     end
@@ -104,8 +105,6 @@ ContinuumArrays.transform_ldiv(V::SubQuasiArray{<:Any,2,<:MultivariateOrthogonal
 # Make sure block structure matches. Probably should do this for all block mul
 QuasiArrays.mul(A::MultivariateOrthogonalPolynomial, b::AbstractVector) =
     ApplyQuasiArray(*, A, BlockedVector(b, (axes(A,2),)))
-QuasiArrays.mul(Q::NormalizedMultivariateOP, b::AbstractVector) =
-    ApplyQuasiArray(*, Q, BlockedVector(b, (axes(Q,2),)))
 
 
 # plotting
@@ -116,7 +115,4 @@ plotgrid_layout(::AbstractMultivariateOPLayout, S, B::Block{1}) = grid(S, min(2B
 
 
 grid(P::MultivariateOrthogonalPolynomial, n::Int) = grid(P, findblock(axes(P,2),n))
-for grd in (:grid, :plotgrid), N in (:Integer, :(Block{1}))
-    @eval $grd(Q::NormalizedMultivariateOP, n::$N) = $grd(Q.P, n)
-end
 plan_transform(P::MultivariateOrthogonalPolynomial, Bs::NTuple{N,Int}, dims=ntuple(identity,Val(N))) where N = plan_transform(P, findblock.(Ref(axes(P,2)), Bs), dims)

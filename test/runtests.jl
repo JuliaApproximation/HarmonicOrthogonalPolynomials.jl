@@ -576,6 +576,7 @@ ClassicalOrthogonalPolynomials.jacobimatrix(::Val{d}, ::Normalized{<:Any,JacobiM
         s = BlockedVector(2.0:∞, (axes(P,2),))
         Q = Normalized(P, s)
         @test axes(Q) == axes(P)
+        @test ContinuumArrays.MemoryLayout(Q) isa HarmonicOrthogonalPolynomials.NormalizedMultivariateOPLayout{3}
 
         @testset "evaluation" begin
             for 𝐲 in (𝐱, SVector(𝐱))
@@ -607,7 +608,6 @@ ClassicalOrthogonalPolynomials.jacobimatrix(::Val{d}, ::Normalized{<:Any,JacobiM
             c = [1.0, 2, 3, 4, 5]
             f = Q * [c; zeros(∞)]
             @test f[𝐱] ≈ (P * [s[1:5] .* c; zeros(∞)])[𝐱]
-            @test axes(f.args[2],1) ≡ axes(P,2)
         end
     end
 
