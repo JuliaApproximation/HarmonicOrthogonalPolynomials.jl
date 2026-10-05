@@ -8,7 +8,7 @@ import LinearAlgebra: norm, factorize
 import QuasiArrays: to_quasi_index, SubQuasiArray, *, AbstractQuasiVecOrMat, Inclusion
 import ContinuumArrays: TransformFactorization, @simplify, ProjectionFactorization, plan_grid_transform, plan_transform, grid, grid_layout, plotgrid_layout,
                         AbstractBasisLayout, MemoryLayout, abslaplacian, laplacian, AbstractDifferentialQuasiMatrix, operatorcall, similaroperator, SubBasisLayout,
-                        ApplyLayout, arguments, ExpansionLayout, basis_axes, grammatrix, plotgrid, equals_layout,
+                        ApplyLayout, arguments, ExpansionLayout, basis_axes, grammatrix, plotgrid, equals_layout, simplifiable, operatororder,
                         AbstractWeightedBasisLayout, WeightedBasisLayout, Ldiv
 import ClassicalOrthogonalPolynomials: checkpoints, _sum, cardinality, increasingtruncations, isnormalized, AbstractNormalizedOPLayout, orthogonalityweight
 import BlockBandedMatrices: BlockRange1, _BandedBlockBandedMatrix

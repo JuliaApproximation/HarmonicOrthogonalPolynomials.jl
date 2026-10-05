@@ -526,6 +526,8 @@ end
         N = 20
         @test isdiag(A[1:N, 1:N])
         @test A[1:N, 1:N]^2 ≈ A2[1:N, 1:N]
+        @test ∂θ * ∂θ == ∂θ^2
+        @test (S \ (∂θ * ∂θ * S))[1:N, 1:N] ≈ (S \ ((∂θ * ∂θ) * S))[1:N, 1:N] ≈ A2[1:N, 1:N]
     end
 end
 

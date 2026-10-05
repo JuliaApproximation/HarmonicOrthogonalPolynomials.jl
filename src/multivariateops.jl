@@ -13,7 +13,7 @@ equals_layout(::AbstractMultivariateOPLayout, ::AbstractWeightedBasisLayout, _, 
 equals_layout(::AbstractWeightedBasisLayout, ::AbstractMultivariateOPLayout, _, _) = false
 
 # needed for reducing P \ Weighted(Normalized(Q)) to (P \ Weighted(Q)) * Diagonal(...)
-ContinuumArrays.simplifiable(::Ldiv{<:AbstractMultivariateOPLayout,<:WeightedBasisLayout{<:AbstractMultivariateOPLayout}}) = Val(true)
+simplifiable(::Ldiv{<:AbstractMultivariateOPLayout,<:WeightedBasisLayout{<:AbstractMultivariateOPLayout}}) = Val(true)
 
 
 const BlockOneTo = BlockRange{1,Tuple{OneTo{Int}}}
