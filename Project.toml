@@ -28,15 +28,17 @@ FastTransforms = "0.17"
 FillArrays = "1.16.0"
 InfiniteArrays = "0.15"
 IntervalSets = "0.7"
+LazyArrays = "2"
 QuasiArrays = "0.13.9"
 SpecialFunctions = "1, 2"
 StaticArrays = "1"
 julia = "1.10"
 
 [extras]
+LazyArrays = "5078a376-72f3-5289-bfd5-ec5146d43c02"
 Rotations = "6038ab10-8711-5258-84ad-4b1120ba62dc"
 Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
 WignerD = "87c4ff3e-34df-11e9-37a7-516cea4e0402"
 
 [targets]
-test = ["Rotations", "Test", "WignerD"]
+test = ["LazyArrays", "Rotations", "Test", "WignerD"]

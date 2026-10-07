@@ -2,6 +2,7 @@ using HarmonicOrthogonalPolynomials, StaticArrays, Test, InfiniteArrays, LinearA
 using Rotations, WignerD
 import HarmonicOrthogonalPolynomials: ZSphericalCoordinate, associatedlegendre, grid, SphereTrav, RealSphereTrav, plotgrid, BivariateOrthogonalPolynomial
 using FastTransforms: pochhammer
+using LazyArrays: BroadcastVector
 
 @testset "associated legendre" begin
     θ = 0.1
@@ -569,6 +570,10 @@ Base.axes(::IncompleteMultivariateOP) = Inclusion((-1.0..1)^2), blockedrange(Bas
 struct JacobiMatrixTestOP <: BivariateOrthogonalPolynomial{Float64} end
 Base.axes(::JacobiMatrixTestOP) = Inclusion((-1.0..1)^2), blockedrange(Base.oneto(∞))
 ClassicalOrthogonalPolynomials.jacobimatrix(::Val{d}, ::Normalized{<:Any,JacobiMatrixTestOP}) where d = Diagonal(Fill(d, ∞))
+# placeholders to test the reductions of normalized and weighted bases
+ClassicalOrthogonalPolynomials.orthogonalityweight(::JacobiMatrixTestOP) = :testweight
+Base.:(==)(::JacobiMatrixTestOP, ::JacobiMatrixTestOP) = true
+Base.:\(::JacobiMatrixTestOP, ::Weighted{<:Any,JacobiMatrixTestOP}) = Diagonal(Fill(3.0, ∞))
 
 @testset "Normalized multivariate OPs" begin
     𝐱 = SphericalCoordinate(0.1,0.2)
@@ -609,6 +614,33 @@ ClassicalOrthogonalPolynomials.jacobimatrix(::Val{d}, ::Normalized{<:Any,JacobiM
             f = Q * [c; zeros(∞)]
             @test f[𝐱] ≈ (P * [s[1:5] .* c; zeros(∞)])[𝐱]
         end
+
+        # a lazy scaling, as with an eager infinite BlockedVector broadcasting with Eye hangs
+        s̃ = BlockedVector(BroadcastVector(k -> 1.0 + k, Base.oneto(∞)), (axes(P,2),))
+        Q̃ = Normalized(P, s̃)
+
+        @testset "conversion" begin
+            @test (Q̃ \ P)[1:10,1:10] ≈ Diagonal(inv.(s̃[1:10]))
+            @test (P \ Q̃)[1:10,1:10] ≈ Diagonal(s̃[1:10])
+            c = [1.0, 2, 3, 4, 5]
+            @test (Q̃ \ (P * [c; zeros(∞)]))[1:5] ≈ c ./ s̃[1:5]
+            @test (P \ (Q̃ * [c; zeros(∞)]))[1:5] ≈ c .* s̃[1:5]
+        end
+
+        @testset "sum" begin
+            @test sum(Q̃; dims=1)[:,1:5] ≈ sum(P; dims=1)[:,1:5] .* s̃[1:5]'
+        end
+    end
+
+    @testset "equality and weighted conversion" begin
+        P = JacobiMatrixTestOP()
+        s = BlockedVector(2.0:∞, (axes(P,2),))
+        Q = Normalized(P, s)
+        @test Q == Normalized(P, s)
+        @test (P \ Weighted(Q))[1:5,1:5] ≈ 3Diagonal(s[1:5])
+        @test (Q \ Weighted(P))[1:5,1:5] ≈ 3Diagonal(inv.(s[1:5]))
+        @test (Q \ Weighted(Q))[1:5,1:5] ≈ 3I(5)
+        @test ContinuumArrays.simplifiable(\, Q, Weighted(Q)) == Val(true)
     end
 
     @testset "jacobimatrix broadcast" begin
