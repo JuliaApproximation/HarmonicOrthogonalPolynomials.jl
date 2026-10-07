@@ -5,6 +5,43 @@ abstract type AbstractMultivariateOPLayout{d} <: AbstractBasisLayout end
 struct MultivariateOPLayout{d} <: AbstractMultivariateOPLayout{d} end
 MemoryLayout(::Type{<:MultivariateOrthogonalPolynomial{d}}) where d = MultivariateOPLayout{d}()
 
+# Normalized(P) == P * Diagonal(scaling) for multivariate P
+struct NormalizedMultivariateOPLayout{d} <: AbstractMultivariateOPLayout{d} end
+normalized_layout(::AbstractMultivariateOPLayout{d}) where d = NormalizedMultivariateOPLayout{d}()
+
+grid_layout(::NormalizedMultivariateOPLayout, Q, B::Block{1}) = grid(Q.P, B)
+plotgrid_layout(::NormalizedMultivariateOPLayout, Q, B::Block{1}) = plotgrid(Q.P, B)
+
+equals_layout(::NormalizedMultivariateOPLayout, ::NormalizedMultivariateOPLayout, P, Q) = orthogonalityweight(P) == orthogonalityweight(Q)
+equals_layout(::NormalizedMultivariateOPLayout, ::AbstractMultivariateOPLayout, P, Q) = isnormalized(Q) && orthogonalityweight(P) == orthogonalityweight(Q)
+equals_layout(::AbstractMultivariateOPLayout, ::NormalizedMultivariateOPLayout, P, Q) = isnormalized(P) && orthogonalityweight(P) == orthogonalityweight(Q)
+equals_layout(::AbstractMultivariateOPLayout, ::AbstractWeightedBasisLayout, _, _) = false
+equals_layout(::AbstractWeightedBasisLayout, ::AbstractMultivariateOPLayout, _, _) = false
+
+# needed for reducing P \ Weighted(Normalized(Q)) to (P \ Weighted(Q)) * Diagonal(...)
+simplifiable(::Ldiv{<:AbstractMultivariateOPLayout,<:WeightedBasisLayout{<:AbstractMultivariateOPLayout}}) = Val(true)
+
+# conversions and sums reduce to the unnormalized OPs via arguments(ApplyLayout{typeof(*)}(), Q) == (Q.P, Diagonal(Q.scaling))
+const MultivariateOPLayouts = Union{AbstractMultivariateOPLayout,WeightedBasisLayout{<:AbstractMultivariateOPLayout}}
+const NormalizedMultivariateOPLayouts = Union{NormalizedMultivariateOPLayout,WeightedBasisLayout{<:NormalizedMultivariateOPLayout}}
+simplifiable(::Ldiv{<:NormalizedMultivariateOPLayout,<:MultivariateOPLayouts}) = Val(true)
+simplifiable(::Ldiv{<:AbstractMultivariateOPLayout,<:NormalizedMultivariateOPLayouts}) = Val(true)
+simplifiable(::Ldiv{<:NormalizedMultivariateOPLayout,<:NormalizedMultivariateOPLayouts}) = Val(true)
+function copy(L::Ldiv{<:NormalizedMultivariateOPLayout,<:MultivariateOPLayouts})
+    P,D = arguments(ApplyLayout{typeof(*)}(), L.A)
+    D \ (P \ L.B)
+end
+function copy(L::Ldiv{<:AbstractMultivariateOPLayout,<:NormalizedMultivariateOPLayouts})
+    Q,E = arguments(ApplyLayout{typeof(*)}(), L.B)
+    (L.A \ Q) * E
+end
+function copy(L::Ldiv{<:NormalizedMultivariateOPLayout,<:NormalizedMultivariateOPLayouts})
+    P,D = arguments(ApplyLayout{typeof(*)}(), L.A)
+    Q,E = arguments(ApplyLayout{typeof(*)}(), L.B)
+    _normalized_ldiv(D, P \ Q, E)
+end
+sum_layout(::NormalizedMultivariateOPLayout, Q, dims) = sum_layout(ApplyLayout{typeof(*)}(), Q, dims)
+
 
 const BlockOneTo = BlockRange{1,Tuple{OneTo{Int}}}
 
@@ -28,6 +65,13 @@ end
 function Base.broadcasted(::LazyQuasiArrayStyle{2}, ::typeof(*), x::LastInclusion, P::MultivariateOrthogonalPolynomial)
     axes(x,1) == axes(P,1) || throw(DimensionMismatch())
     P*jacobimatrix(Val(2), P)
+end
+
+for (Inc, f, d) in ((:FirstInclusion, :first, 1), (:LastInclusion, :last, 2))
+    @eval function layout_broadcasted(::Tuple{BroadcastLayout{typeof($f)},NormalizedMultivariateOPLayout}, ::typeof(*), x::$Inc, Q)
+        axes(x,1) == axes(Q,1) || throw(DimensionMismatch())
+        Q*jacobimatrix(Val($d), Q)
+    end
 end
 
 """
