@@ -5,15 +5,14 @@ abstract type AbstractMultivariateOPLayout{d} <: AbstractBasisLayout end
 struct MultivariateOPLayout{d} <: AbstractMultivariateOPLayout{d} end
 MemoryLayout(::Type{<:MultivariateOrthogonalPolynomial{d}}) where d = MultivariateOPLayout{d}()
 
-# Normalized(P) == P * Diagonal(scaling) for multivariate P. Most operations reduce to P via AbstractNormalizedOPLayout
-# but we need to avoid methods that assume univariate OPs.
-struct NormalizedMultivariateOPLayout{d} <: AbstractNormalizedOPLayout end
+# Normalized(P) == P * Diagonal(scaling) for multivariate P
+struct NormalizedMultivariateOPLayout{d} <: AbstractMultivariateOPLayout{d} end
 normalized_layout(::AbstractMultivariateOPLayout{d}) where d = NormalizedMultivariateOPLayout{d}()
 
-for (grid_lay, grd) in ((:grid_layout, :grid), (:plotgrid_layout, :plotgrid)), N in (:Integer, :(Block{1}))
-    @eval $grid_lay(::NormalizedMultivariateOPLayout, Q, n::$N) = $grd(Q.P, n)
-end
+grid_layout(::NormalizedMultivariateOPLayout, Q, B::Block{1}) = grid(Q.P, B)
+plotgrid_layout(::NormalizedMultivariateOPLayout, Q, B::Block{1}) = plotgrid(Q.P, B)
 
+equals_layout(::NormalizedMultivariateOPLayout, ::NormalizedMultivariateOPLayout, P, Q) = orthogonalityweight(P) == orthogonalityweight(Q)
 equals_layout(::NormalizedMultivariateOPLayout, ::AbstractMultivariateOPLayout, P, Q) = isnormalized(Q) && orthogonalityweight(P) == orthogonalityweight(Q)
 equals_layout(::AbstractMultivariateOPLayout, ::NormalizedMultivariateOPLayout, P, Q) = isnormalized(P) && orthogonalityweight(P) == orthogonalityweight(Q)
 equals_layout(::AbstractMultivariateOPLayout, ::AbstractWeightedBasisLayout, _, _) = false
@@ -21,6 +20,16 @@ equals_layout(::AbstractWeightedBasisLayout, ::AbstractMultivariateOPLayout, _, 
 
 # needed for reducing P \ Weighted(Normalized(Q)) to (P \ Weighted(Q)) * Diagonal(...)
 simplifiable(::Ldiv{<:AbstractMultivariateOPLayout,<:WeightedBasisLayout{<:AbstractMultivariateOPLayout}}) = Val(true)
+
+# conversions and sums reduce to the unnormalized OPs via arguments(ApplyLayout{typeof(*)}(), Q) == (Q.P, Diagonal(Q.scaling))
+const MultivariateOPLayouts = Union{AbstractMultivariateOPLayout,WeightedBasisLayout{<:AbstractMultivariateOPLayout}}
+simplifiable(::Ldiv{<:NormalizedMultivariateOPLayout,<:MultivariateOPLayouts}) = Val(true)
+simplifiable(::Ldiv{<:AbstractMultivariateOPLayout,<:Union{NormalizedMultivariateOPLayout,WeightedBasisLayout{<:NormalizedMultivariateOPLayout}}}) = Val(true)
+simplifiable(::Ldiv{<:NormalizedMultivariateOPLayout,<:Union{NormalizedMultivariateOPLayout,WeightedBasisLayout{<:NormalizedMultivariateOPLayout}}}) = Val(true)
+copy(L::Ldiv{<:NormalizedMultivariateOPLayout,Lay}) where Lay<:MultivariateOPLayouts = copy(Ldiv{ApplyLayout{typeof(*)},Lay}(L.A, L.B))
+copy(L::Ldiv{Lay,<:Union{NormalizedMultivariateOPLayout,WeightedBasisLayout{<:NormalizedMultivariateOPLayout}}}) where Lay<:AbstractMultivariateOPLayout = copy(Ldiv{Lay,ApplyLayout{typeof(*)}}(L.A, L.B))
+copy(L::Ldiv{<:NormalizedMultivariateOPLayout,<:Union{NormalizedMultivariateOPLayout,WeightedBasisLayout{<:NormalizedMultivariateOPLayout}}}) = copy(Ldiv{ApplyLayout{typeof(*)},ApplyLayout{typeof(*)}}(L.A, L.B))
+sum_layout(::NormalizedMultivariateOPLayout, Q, dims) = sum_layout(ApplyLayout{typeof(*)}(), Q, dims)
 
 
 const BlockOneTo = BlockRange{1,Tuple{OneTo{Int}}}
