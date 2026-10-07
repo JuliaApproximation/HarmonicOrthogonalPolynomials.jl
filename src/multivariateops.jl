@@ -23,12 +23,23 @@ simplifiable(::Ldiv{<:AbstractMultivariateOPLayout,<:WeightedBasisLayout{<:Abstr
 
 # conversions and sums reduce to the unnormalized OPs via arguments(ApplyLayout{typeof(*)}(), Q) == (Q.P, Diagonal(Q.scaling))
 const MultivariateOPLayouts = Union{AbstractMultivariateOPLayout,WeightedBasisLayout{<:AbstractMultivariateOPLayout}}
+const NormalizedMultivariateOPLayouts = Union{NormalizedMultivariateOPLayout,WeightedBasisLayout{<:NormalizedMultivariateOPLayout}}
 simplifiable(::Ldiv{<:NormalizedMultivariateOPLayout,<:MultivariateOPLayouts}) = Val(true)
-simplifiable(::Ldiv{<:AbstractMultivariateOPLayout,<:Union{NormalizedMultivariateOPLayout,WeightedBasisLayout{<:NormalizedMultivariateOPLayout}}}) = Val(true)
-simplifiable(::Ldiv{<:NormalizedMultivariateOPLayout,<:Union{NormalizedMultivariateOPLayout,WeightedBasisLayout{<:NormalizedMultivariateOPLayout}}}) = Val(true)
-copy(L::Ldiv{<:NormalizedMultivariateOPLayout,Lay}) where Lay<:MultivariateOPLayouts = copy(Ldiv{ApplyLayout{typeof(*)},Lay}(L.A, L.B))
-copy(L::Ldiv{Lay,<:Union{NormalizedMultivariateOPLayout,WeightedBasisLayout{<:NormalizedMultivariateOPLayout}}}) where Lay<:AbstractMultivariateOPLayout = copy(Ldiv{Lay,ApplyLayout{typeof(*)}}(L.A, L.B))
-copy(L::Ldiv{<:NormalizedMultivariateOPLayout,<:Union{NormalizedMultivariateOPLayout,WeightedBasisLayout{<:NormalizedMultivariateOPLayout}}}) = copy(Ldiv{ApplyLayout{typeof(*)},ApplyLayout{typeof(*)}}(L.A, L.B))
+simplifiable(::Ldiv{<:AbstractMultivariateOPLayout,<:NormalizedMultivariateOPLayouts}) = Val(true)
+simplifiable(::Ldiv{<:NormalizedMultivariateOPLayout,<:NormalizedMultivariateOPLayouts}) = Val(true)
+function copy(L::Ldiv{<:NormalizedMultivariateOPLayout,<:MultivariateOPLayouts})
+    P,D = arguments(ApplyLayout{typeof(*)}(), L.A)
+    D \ (P \ L.B)
+end
+function copy(L::Ldiv{<:AbstractMultivariateOPLayout,<:NormalizedMultivariateOPLayouts})
+    Q,E = arguments(ApplyLayout{typeof(*)}(), L.B)
+    (L.A \ Q) * E
+end
+function copy(L::Ldiv{<:NormalizedMultivariateOPLayout,<:NormalizedMultivariateOPLayouts})
+    P,D = arguments(ApplyLayout{typeof(*)}(), L.A)
+    Q,E = arguments(ApplyLayout{typeof(*)}(), L.B)
+    _normalized_ldiv(D, P \ Q, E)
+end
 sum_layout(::NormalizedMultivariateOPLayout, Q, dims) = sum_layout(ApplyLayout{typeof(*)}(), Q, dims)
 
 

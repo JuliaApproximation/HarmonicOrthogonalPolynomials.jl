@@ -10,7 +10,7 @@ import ContinuumArrays: TransformFactorization, @simplify, ProjectionFactorizati
                         AbstractBasisLayout, MemoryLayout, abslaplacian, laplacian, AbstractDifferentialQuasiMatrix, operatorcall, similaroperator, SubBasisLayout,
                         ApplyLayout, arguments, ExpansionLayout, basis_axes, grammatrix, plotgrid, equals_layout, simplifiable, operatororder, layout_broadcasted, BroadcastLayout, sum_layout,
                         AbstractWeightedBasisLayout, WeightedBasisLayout, Ldiv
-import ClassicalOrthogonalPolynomials: checkpoints, _sum, cardinality, increasingtruncations, isnormalized, AbstractNormalizedOPLayout, orthogonalityweight, normalized_layout
+import ClassicalOrthogonalPolynomials: checkpoints, _sum, cardinality, increasingtruncations, isnormalized, AbstractNormalizedOPLayout, orthogonalityweight, normalized_layout, _normalized_ldiv
 import BlockBandedMatrices: BlockRange1, _BandedBlockBandedMatrix
 import FastTransforms: Plan, interlace
 import QuasiArrays: LazyQuasiMatrix, LazyQuasiArrayStyle, _getindex
