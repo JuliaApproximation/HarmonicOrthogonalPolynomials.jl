@@ -24,10 +24,10 @@ function RadialCoordinate{T}(𝐱::StaticVector{2,<:Real}) where T<:Real
     RadialCoordinate{T}(norm(𝐱), atan(y,x))
 end
 
-RadialCoordinate(𝐱::StaticVector{2,T}) where T<:Real = RadialCoordinate{T}(𝐱)
+RadialCoordinate(𝐱::StaticVector{2,T}) where T<:Real = RadialCoordinate{float(T)}(𝐱)
 
 RadialCoordinate{T}(𝐱::AbstractVector) where T<:Real = RadialCoordinate{T}(convert(SVector{2,T}, 𝐱))
-RadialCoordinate(𝐱::AbstractVector{T}) where T<:Real = RadialCoordinate{T}(𝐱)
+RadialCoordinate(𝐱::AbstractVector{T}) where T<:Real = RadialCoordinate{float(T)}(𝐱)
 
 StaticArrays.SVector(𝐱::RadialCoordinate) = SVector(𝐱.r * cos(𝐱.θ), 𝐱.r * sin(𝐱.θ))
 
@@ -35,6 +35,8 @@ convert(::Type{RadialCoordinate}, 𝐱::AbstractVector) = RadialCoordinate(𝐱)
 convert(::Type{RadialCoordinate{T}}, 𝐱::AbstractVector) where T = RadialCoordinate{T}(𝐱)
 convert(::Type{RadialCoordinate}, 𝐱::StaticVector) = RadialCoordinate(𝐱)
 convert(::Type{RadialCoordinate{T}}, 𝐱::StaticVector) where T = RadialCoordinate{T}(𝐱)
+convert(::Type{RadialCoordinate}, 𝐱::Tuple) = convert(RadialCoordinate, convert(SVector, 𝐱))
+convert(::Type{RadialCoordinate{T}}, 𝐱::Tuple) where T = convert(RadialCoordinate{T}, convert(SVector, 𝐱))
 
 
 getindex(R::RadialCoordinate, k::Int) = SVector(R)[k]

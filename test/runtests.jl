@@ -62,6 +62,27 @@ end
     @test convert(RadialCoordinate, 𝐱v) ≈ rθ
     @test convert(RadialCoordinate{Float64}, 𝐱v) ≈ rθ
     @test convert(RadialCoordinate{Float32}, 𝐱v) isa RadialCoordinate{Float32}
+
+    𝐱t = Tuple(𝐱)
+    @test convert(RadialCoordinate, 𝐱t) isa RadialCoordinate{Float64}
+    @test convert(RadialCoordinate, 𝐱t) ≈ rθ
+    @test convert(RadialCoordinate{Float64}, 𝐱t) isa RadialCoordinate{Float64}
+    @test convert(RadialCoordinate{Float64}, 𝐱t) ≈ rθ
+    @test convert(RadialCoordinate{Float32}, 𝐱t) isa RadialCoordinate{Float32}
+    @test convert(RadialCoordinate{Float32}, 𝐱t) ≈ rθ
+    @test convert(RadialCoordinate, Float32.(𝐱t)) isa RadialCoordinate{Float32}
+    @test convert(RadialCoordinate, (1, 0.0)) ≡ RadialCoordinate(1.0, 0.0) # mixed types are promoted
+    @test convert(RadialCoordinate{Float64}, (0, 2)) ≈ RadialCoordinate(2.0, π/2)
+    # integer coordinates give a floating point RadialCoordinate
+    @test convert(RadialCoordinate, (0, 2)) isa RadialCoordinate{Float64}
+    @test convert(RadialCoordinate, (0, 2)) ≈ RadialCoordinate(2.0, π/2)
+    @test RadialCoordinate(SVector(1, 2)) isa RadialCoordinate{Float64}
+    @test RadialCoordinate(SVector(1, 2)) ≈ [1, 2]
+    @test RadialCoordinate([1, 2]) isa RadialCoordinate{Float64}
+    @test RadialCoordinate([1, 2]) ≈ [1, 2]
+    @test convert(RadialCoordinate, [1, 2]) ≈ convert(RadialCoordinate, SVector(1, 2)) ≈ [1, 2]
+    @test RadialCoordinate(SVector{2,Float32}(1, 2)) isa RadialCoordinate{Float32}
+    @test_throws MethodError convert(RadialCoordinate, (0.1, 0.2, 0.3))
 end
 @testset "SphericalCoordinate" begin
     θφ = SphericalCoordinate(0.1,0.2)
