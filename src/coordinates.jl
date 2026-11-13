@@ -35,6 +35,8 @@ convert(::Type{RadialCoordinate}, 𝐱::AbstractVector) = RadialCoordinate(𝐱)
 convert(::Type{RadialCoordinate{T}}, 𝐱::AbstractVector) where T = RadialCoordinate{T}(𝐱)
 convert(::Type{RadialCoordinate}, 𝐱::StaticVector) = RadialCoordinate(𝐱)
 convert(::Type{RadialCoordinate{T}}, 𝐱::StaticVector) where T = RadialCoordinate{T}(𝐱)
+convert(::Type{RadialCoordinate}, 𝐱::Tuple) = convert(RadialCoordinate, convert(SVector, 𝐱))
+convert(::Type{RadialCoordinate{T}}, 𝐱::Tuple) where T = convert(RadialCoordinate{T}, convert(SVector, 𝐱))
 
 
 getindex(R::RadialCoordinate, k::Int) = SVector(R)[k]
